@@ -1,4 +1,0 @@
-﻿  test.c
-D:\创建的vs文件\MergeSortNonR_4_24\MergeSortNonR_4_24\test.c(18,25): warning C4013: “malloc”未定义；假设外部返回 int
-D:\创建的vs文件\MergeSortNonR_4_24\MergeSortNonR_4_24\test.c(80,6): warning C4013: “free”未定义；假设外部返回 int
-  MergeSortNonR_4_24.vcxproj -> D:\创建的vs文件\MergeSortNonR_4_24\Debug\MergeSortNonR_4_24.exe

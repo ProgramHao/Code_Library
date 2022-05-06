@@ -1,0 +1,73 @@
+https://www.nowcoder.com/practice/7960b5038a2142a18e27e4c733855dac?tpId=37&tags=&title=&difficulty=&judgeStatus=&rp=1&sourceUrl=%2Fexam%2Foj%2Fta%3FtpId%3D37&gioEnter=menu
+#include<stdio.h>
+#include<string.h>
+int main()
+{
+    char mima[100],x[100];
+    int len,i;
+    scanf("%s",mima);
+    len=strlen(mima);
+    for(i=0;i<len;i++)
+    {
+        if(mima[i]>='a'&&mima[i]<='c')
+            x[i]='2';
+        else if(mima[i]>='d'&&mima[i]<='f')
+            x[i]='3';
+        else if(mima[i]>='g'&&mima[i]<='i')
+            x[i]='4';
+        else if(mima[i]>='j'&&mima[i]<='l')
+            x[i]='5';
+        else if(mima[i]>='m'&&mima[i]<='o')
+            x[i]='6';
+        else if(mima[i]>='p'&&mima[i]<='s')
+            x[i]='7';
+        else if(mima[i]>='t'&&mima[i]<='v')
+            x[i]='8';
+        else if(mima[i]>='w'&&mima[i]<='z')
+            x[i]='9';
+        else if(mima[i]>='A'&&mima[i]<='Y')
+            x[i]=mima[i]+33;
+        else if(mima[i]=='Z')
+            x[i]='a';
+        else if(mima[i]>='0'&&mima[i]<='9')
+            x[i]=mima[i];
+    }
+    printf("%s",x);
+     
+}
+
+
+
+
+
+
+
+https://www.nowcoder.com/practice/3245215fffb84b7b81285493eae92ff0?tpId=37&tags=&title=&difficulty=&judgeStatus=&rp=1&sourceUrl=%2Fexam%2Foj%2Fta%3FtpId%3D37&gioEnter=menu
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+ 
+int main()
+{
+    int n;
+     
+    int a;
+    while(~scanf("%d", &n))
+    {
+        int count[1001] = {0};
+        for (int i = 0; i < n; i++)
+        {
+            scanf("%d", &a);
+            count[a] = 1;
+        }
+        for (int i = 0; i < 1001; i++)
+        {
+            if (count[i] == 1)
+            {
+                printf("%d\n", i);
+            }
+        }
+    }
+     
+    return 0;
+}

@@ -1,0 +1,37 @@
+
+//https://www.nowcoder.com/practice/05182d328eb848dda7fdd5e029a56da9?tpId=37&tags=&title=&difficulty=&judgeStatus=&rp=1&sourceUrl=%2Fexam%2Foj%2Fta%3FtpId%3D37&gioEnter=menu
+#include<stdio.h>
+#include<string.h>
+
+void delete(char* a)
+{
+    int len=strlen(a);
+    int flag[26]={0};
+    int min=20;
+    
+    for(int i=0;i<len;i++)
+    {
+        flag[a[i]-'a']++;
+    }
+    
+    for(int i=0;i<26;i++)
+    {
+        if(flag[i]<=min&&flag[i]!=0)
+            min=flag[i];
+    }
+    
+    for(int i=0;i<len;i++)
+    {
+        if(flag[a[i]-'a']>min)
+        {
+            printf("%c",a[i]);
+        }
+    }
+}
+int main()
+{
+    char arr[20]={0};
+    scanf("%s",arr);
+    delete(arr);
+    return 0;
+}

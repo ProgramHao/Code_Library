@@ -1,3 +1,0 @@
-﻿  test.c
-D:\创建的vs文件\List_5_11\List_5_11\test.c(14,11): warning C4013: “ListPrint”未定义；假设外部返回 int
-  List_5_11.vcxproj -> D:\创建的vs文件\List_5_11\Debug\List_5_11.exe

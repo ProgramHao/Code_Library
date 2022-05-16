@@ -1,0 +1,11 @@
+﻿  Queue.c
+D:\创建的vs文件\Queue_5_16\Queue_5_16\Queue.c(8,29): warning C4013: “malloc”未定义；假设外部返回 int
+D:\创建的vs文件\Queue_5_16\Queue_5_16\Queue.c(12,7): warning C4013: “exit”未定义；假设外部返回 int
+D:\创建的vs文件\Queue_5_16\Queue_5_16\Queue.c(39,7): warning C4013: “free”未定义；假设外部返回 int
+D:\创建的vs文件\Queue_5_16\Queue_5_16\Queue.c(110,3): warning C4033: “QueueFront”必须返回值
+D:\创建的vs文件\Queue_5_16\Queue_5_16\Queue.c(127,3): warning C4033: “QueueBack”必须返回值
+  test.c
+  正在生成代码...
+D:\创建的vs文件\Queue_5_16\Queue_5_16\Queue.c(114): warning C4715: “QueueFront”: 不是所有的控件路径都返回值
+D:\创建的vs文件\Queue_5_16\Queue_5_16\Queue.c(131): warning C4715: “QueueBack”: 不是所有的控件路径都返回值
+  Queue_5_16.vcxproj -> D:\创建的vs文件\Queue_5_16\Debug\Queue_5_16.exe

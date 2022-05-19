@@ -1,0 +1,712 @@
+//https://leetcode.cn/problems/valid-parentheses/
+//这里需要用到栈，所以将栈的相关内容拷贝过来
+
+typedef char StackDataType;//重定义类型名
+//这里是字符串，所以改成字符型
+
+typedef struct Stack
+{
+	StackDataType* a;//创建一个指针，用来接收数组首元素地址，数组里面的类型是StackDataType
+	                 //用数组来描述栈，因为出栈和入栈都是一个地方
+	int top;//相当于数组的下标，可以是0或-1，这里我们选择0
+	int capacity;//数组的容量
+}ST;
+
+
+//初始化结构体，将结构体变量的地址传递过来，是地址传递，这样就能改变实参的内容了
+void StackInit(ST* ps)
+{
+	assert(ps);//地址传递，断言好习惯
+
+	//动态开辟一个数组的空间，数组的元素类型是StackDataType，将首元素地址赋给指针a
+	ps->a = (StackDataType*)malloc(sizeof(StackDataType) * 4);
+	if (ps->a == NULL)//判断是否成功开辟动态空间
+	{
+		perror("the mistake is");
+	}
+
+	ps->top = 0;        //相当于数组下标，可以初始化0或-1，这里用0
+	                    //用0数组下标从0开始，用-1数组下标从-1开始
+
+	ps->capacity = 4;   //从开辟的动态空间可以看出数组的容量是4
+}
+
+
+//销毁结构体里的内容，地址传递，才能改变实参的内容
+void StackDestroy(ST* ps)
+{
+	assert(ps);
+
+	free(ps->a);//释放动态开辟的内存
+	ps->a = NULL;
+
+	ps->top = 0; //将结构体里的 相当于数组下标top 和 容量capacity 置为0
+	ps->capacity = 0;
+}
+
+
+//入栈,相当于往数组填充数据x
+void StackPush(ST* ps,StackDataType x)
+{
+	assert(ps);
+
+	if (ps->top == ps->capacity)//申请的动态空间满了，数组的元素和容量相等，需要增容
+	{
+		//用relloc函数申请动态空间，创建临时指针变量是怕动态开辟空间失败，增容一般是上一次的2倍
+		//注意realloc和malloc函数里的参数，realloc有两个，malloc只有一个
+		StackDataType* tmp = (StackDataType*)realloc(ps->a, sizeof(StackDataType) * ps->capacity * 2);
+
+		if (tmp == NULL)//判断是否成功开辟动态空间
+		{
+			perror("the mistake is");
+		}
+		else  //增容成功
+		{
+			//printf("增容成功\n");
+			ps->a = tmp;//将新开辟的动态空间地址赋给指针a
+			ps->capacity *= 2;
+		}
+	}
+
+	//不需要增容或增容之后
+		ps->a[ps->top] = x;//想数组填充数据
+		ps->top++;  //数组下标加1，方便后面下一次入栈；
+						//同时top从0开始，填充一个数据top就自增一次，所以数据个数和top相等
+}
+
+
+
+
+//出栈,相当于数组最后一个数据除去，一般除数组最后一个元素的方法就是下标减1，效果上相当于除去了
+void StackPop(ST* ps)
+{
+	assert(ps);
+
+	assert(ps->top > 0);//防止数据里面没有数据，就不需要出栈
+	                    //之前入栈的时候，因为top从0开始，填充一个数据top就自增一次，所以数据个数和top相等
+
+	ps->top--;//一般除数组最后一个元素的方法就是下标减1，效果上相当于除去了
+}
+
+
+
+//返回栈顶的元素，相当于数组的最后一个元素,元素的类型是StackDataType
+StackDataType StackTop(ST* ps)
+{
+	assert(ps);
+
+	assert(ps->top>0);//防止数据里面没有数据，就不用返回
+					  //因为top从0开始，填充一个数据top就自增1一次，删除一个数据top就自减1一次，所以数据个数和top相等
+
+	return ps->a[ps->top - 1];//因为下标top是初始化从0开始的，所以数组最后一个元素的下标是top-1
+}
+
+
+//判断栈里是否有元素，用布尔型bool，真就为1，假就为0
+bool StackEmpty(ST* ps)
+{
+	assert(ps);
+
+	return ps->top == 0;//ps->top==0 为真，则返回值是1；为假，返回值是0
+}
+
+
+//判断
+bool isValid(char * s){
+    ST st;
+    StackInit(&st);//先创建一个结构体，并初始化
+
+    while(*s!='\0')//循环到字符串的结束标志，就停止
+    {
+    switch(*s)//字符串的每个字符进行分支语句判断
+    {
+        case '(':
+        case '[':
+        case '{':
+        {
+            StackPush(&st, *s);//是左括号就入栈
+            s++;//判断一个后，指针向后走一个，判断下一个字符
+            break;
+        }
+        case ')':
+        case '}':
+        case ']':
+        {
+            if(StackEmpty(&st))//即结构体的数组里没有数据的时候
+            {
+                StackDestroy(&st);//结束函数返回值之前，先销毁，防止内存泄漏
+                return false;//有上面不匹配的情况，就返回
+            }
+
+            char top=StackTop(&st);//是右括号，先创建临时变量存放栈顶数据,方便后面进行匹配
+            StackPop(&st);//创建临时变量存放栈顶数据之后，要将栈顶数据出栈，方便后面的匹配
+                          //即判断匹配一次，就出栈一次，方便后面的接着判断是否匹配
+            if((top=='('&&*s!=')')||(top=='['&&*s!=']')||(top=='{'&&*s!='}'))//三种不匹配的情况
+            {
+                StackDestroy(&st);//结束函数返回值之前，先销毁，防止内存泄漏
+                return false;//有上面不匹配的情况，就返回
+            }
+            s++;//判断一个后，指针向后走一个，判断下一个字符
+            break;
+        }
+    }
+    }
+
+    int ret=StackEmpty(&st);//防止当字符串只有一个左括号的时候，所以这时候没有匹配，不会出栈，所以返回值是0，因为如果匹配上一对，就相应的左括号出栈一次，匹配结束如果都匹配上了，就返回值是1
+
+    StackDestroy(&st);//结束函数返回值之前，先销毁，防止内存泄漏
+    return ret;//循环结束，没有不匹配的情况，跳出循环
+}
+
+
+
+
+
+
+//https://leetcode.cn/problems/implement-stack-using-queues/
+//这里需要用到队列的内容
+
+
+typedef int QDataType;//类型重命名
+
+typedef struct QueueNode//节点用结构体表示
+{
+	struct QueueNode* next;//指向下一个节点
+	QDataType data;//队列中存储的数据
+}QNode;
+
+
+typedef struct Queue//定义一个结构体，用来存放链表的第一个节点和尾节点
+					//第一个节点用于对头出(头删)，尾节点用于队尾入(尾插)
+{
+	QNode* head;
+	QNode* tail;
+}Queue;
+
+
+
+//初始化第一个节点和尾节点
+void QueueInit(Queue* pq)
+{
+	assert(pq);
+	pq->head = pq->tail = NULL;//初始化两个节点都用空指针NULL
+}
+
+//销毁空间，即返回每个节点开辟的空间
+void QueueDestory(Queue* pq)
+{
+	assert(pq);
+
+	QNode* cur = pq->head;
+	while (cur)//遍历一次，直到链表最后一个节点里的指针(NULL)
+	{
+		QNode* next = cur->next;
+		free(cur);//依次释放每个节点的空间
+		cur = next;
+	}
+
+	pq->head = pq->tail = NULL;//释放完，指针head和 tail置空
+}
+
+// 队尾入(尾插)
+void QueuePush(Queue* pq, QDataType x)
+{
+	assert(pq);
+	QNode* newnode = (QNode*)malloc(sizeof(QNode));//开辟新节点
+	if (newnode == NULL)//防止动态空间开辟失败
+	{
+		printf("malloc fail\n");
+		exit(-1);//结束函数
+	}
+
+	//开辟空间成功
+	newnode->data = x;//将想放的数据放入节点里
+	newnode->next = NULL;//单链表节点里的指针要先赋空指针NULL
+
+	if (pq->tail == NULL)//判断链表里是否有节点
+	{
+		pq->head = pq->tail = newnode;//没有节点，将新节点赋给第一个节点head和尾节点tail
+	}
+	else
+	{
+		pq->tail->next = newnode;//有节点，直接单链表尾插
+		pq->tail = newnode;//尾节点向后走一位，方便写一次队尾入(尾插)
+	}
+}
+
+// 队头出
+void QueuePop(Queue* pq)
+{
+	assert(pq);
+
+	assert(pq->head);//防止链表里没有节点，就不需要队头出(头删)
+
+	// 1、一个
+	// 2、多个
+	if (pq->head->next == NULL)//如果链表里只有一个节点的时候
+	{
+		free(pq->head);//直接free点这节点的空间
+		pq->head = pq->tail = NULL;//将指针head和tail置空
+	}
+	else//链表有两个及以上的节点
+	{
+		QNode* next = pq->head->next;//先找到第一个节点head的下一个节点next
+		free(pq->head);//释放第一个节点的空间
+		pq->head = next;//将节点next作为新的第一个节点，方便下一次的队列出(头删)
+	}
+}
+
+
+
+//访问对头的数据(链表里的第一个节点的数据)
+QDataType QueueFront(Queue* pq)
+{
+	assert(pq);
+
+	assert(pq->head);//防止链表没有节点，没有节点就访问不了结构体里的数据，不然就会报错
+
+	return pq->head->data;//访问对头(第一个节点)里的数据
+}
+
+//访问对尾的数据(链表里的尾节点的数据)
+QDataType QueueBack(Queue* pq)
+{
+	assert(pq);
+
+	assert(pq->head);//防止链表没有节点，没有节点就访问不了结构体里的数据，不然就会报错
+
+	return pq->tail->data;//访问对尾(尾节点)里的数据
+}
+
+//队列(链表)里的元素个数
+int QueueSize(Queue* pq)
+{
+	assert(pq);
+	int size = 0;
+	QNode* cur = pq->head;
+	while (cur)//遍历一次，直到链表最后一个节点里的指针(NULL)
+	{
+		++size;
+		cur = cur->next;
+	}
+
+	return size;
+}
+
+//判断链表里是否有元素,如果队列是空的，逻辑为真；如果队列是非空的，逻辑为假
+bool QueueEmpty(Queue* pq)
+{
+	assert(pq);
+	return pq->head == NULL;//看第一个节点是否为空指针，
+							//为空就是没有元素，不为空就是有元素
+}
+
+
+
+
+//开始写
+//这里的结构体只有关键字strcut，没有名字，这种叫匿名结构体，这种直接无法使用，但是如果前面用typedef重命名，就可以用重命名的结构体类型名字来使用它
+typedef struct {
+    Queue q1;//用结构体放两个队列，方便使用
+    Queue q2;//这里创建的是结构体变量q1、q2；没有创建结构体指针变量，当然也可以，看自己的使用习惯
+} MyStack;
+
+
+//初始化两个队列
+MyStack* myStackCreate() {
+    MyStack* obj=(MyStack*)malloc(sizeof(MyStack));//动态申请结构体类型MyStack的空间内存
+    if(obj==NULL)
+    {
+        perror("the mistake");//动态申请空间，不成功，可以用函数perror()来显示错误的信息
+    }
+
+    //初始化两个队列
+    QueueInit(&obj->q1);//结构体变量q1的地址传递
+    QueueInit(&obj->q2);//结构体变量q2的地址传递
+
+    return obj;//返回创建成功的结构体类型MyStack的地址
+}
+
+//入栈，将数据队尾进(尾插)到 非空的队列中去
+void myStackPush(MyStack* obj, int x) {
+    if(QueueSize(&obj->q1))//判断哪个队列为非空队列
+    {
+        QueuePush(&obj->q1,x);
+    }
+    else
+    {
+        QueuePush(&obj->q2,x);
+    }
+}
+
+
+//删除栈顶的元素
+int myStackPop(MyStack* obj) {
+        Queue* EmptyQ=&obj->q1;//假设q1为空队列，q2为非空队列
+    Queue* NonEmptyQ=&obj->q2;
+
+    if(QueueEmpty(&obj->q2))//假设不成立，交换
+    {
+        EmptyQ=&obj->q2;
+        NonEmptyQ=&obj->q1;
+    }
+
+    while(QueueSize(NonEmptyQ)>1)//把 非空队列的元素 从 对头 依次顺序放入 空的队列 里面去
+                                //直到非空最后一个元素留下，其他的全部传过去
+    {
+        QueuePush(EmptyQ,QueueFront(NonEmptyQ));//依次从对头传递过去
+        QueuePop(NonEmptyQ);//非空队列对头传递一个，非空队列就对头出一个，这样循环才能依次传递除了
+                           //最后一个元素的其他所有元素
+    }
+    int top = QueueFront(NonEmptyQ);//找到要删除的栈顶的元素，先创建临时变量存储
+    QueuePop(NonEmptyQ);//传递完成后，就对头出(头删)最后一个元素(即栈顶的元素)
+    return top;//删除栈顶元素后，就返回临时变量存放的栈顶元素
+}
+
+
+//返回栈顶的元素，肯定从非空的队列返回队尾的元素，这路的队尾就是栈顶
+int myStackTop(MyStack* obj) {
+    if(QueueSize(&obj->q1))//判断哪个队列为非空队列
+    {
+        return QueueBack(&obj->q1);//返回非空队列队尾的元素
+    }
+    else
+    {
+        return QueueBack(&obj->q2);//返回非空队列队尾的元素
+    }
+}
+
+
+//判断栈为空，就是两个队列都为空,如果两个队列都是空的，逻辑为真；如果两个队列是只要有一个非空的，逻辑为假
+bool myStackEmpty(MyStack* obj) {
+    return QueueEmpty(&obj->q1) && QueueEmpty(&obj->q2);
+    //或者：return QueueSize(&obj->q1)==0 && QueueSize(&obj->q1==0;
+}
+
+
+//释放栈的空间，即释放两个对列的空间
+void myStackFree(MyStack* obj) {
+    QueueDestory(&obj->q1);//销毁两个对列的空间
+    QueueDestory(&obj->q2);
+
+    free(obj);
+    obj=NULL;
+}
+
+
+
+
+
+
+
+
+
+
+//https://leetcode.cn/problems/implement-queue-using-stacks/
+//栈的代码
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<assert.h>
+#include<stdbool.h>
+
+typedef int STDataType;
+
+//因为用数组实现栈，所以用结构体表示 栈
+typedef struct Stack
+{
+	STDataType* a;//数组用来存放数据,因为是动态开辟空间，所以开辟一个数组的空间，指针a指向这块空间
+	int top;//top是表示实际存储的数据个数，即有效数据个数
+	int capacity;//数组的容量，即可以存放的数据的个数
+}ST;
+
+//初始化栈
+void StackInit(ST* ps);
+
+//销毁栈
+void StackDestroy(ST* ps);
+
+//入栈
+void StackPush(ST* ps, STDataType x);
+
+//出栈
+void StackPop(ST* ps);
+
+//栈顶的 元素
+STDataType StackTop(ST* ps);
+
+//判断栈是为空
+bool StackEmpty(ST* ps);
+
+//返回栈的有效元素个数
+int StackSize(ST* ps);
+
+//初始化栈
+void StackInit(ST* ps)
+{
+	assert(ps);//断言好习惯
+
+	ps->a = NULL;//初始化结构体(栈)
+	ps->capacity = 0;
+	ps->top = 0;
+}
+
+
+//销毁栈
+void StackDestroy(ST* ps)
+{
+	assert(ps);//断言好习惯
+
+	free(ps->a);//释放动态开辟的内存
+	ps->capacity = 0;
+	ps->top = 0;//这里初始化top为0，即可理解为数组的下标，因为下标从0开始放数据，放一个数据，就自增1
+	            //所以top是等于存放的元素个数的，因为从0开始，放一个数据，自增1，所以top是栈顶下一个元素的下标
+}
+
+
+//入栈
+void StackPush(ST* ps, STDataType x)
+{
+	assert(ps);//断言好习惯
+
+	//是否增容
+	if (ps->top == ps->capacity)
+	{
+		//定义新的容量
+		int newcapacity = ps->capacity == 0 ? 4 : ps->capacity * 2;
+		//动态开辟新的空间，注意realloc和malloc的区别
+		STDataType* tmp = (STDataType*)realloc(ps->a, sizeof(STDataType) * newcapacity);
+		//判断是否开辟成功
+		if (tmp == NULL)
+		{
+			printf("realloc fail");
+			exit(-1);
+		}
+
+		//开辟成功
+		ps->a = tmp;
+		ps->capacity = newcapacity;
+	}
+
+	//放入数据
+	ps->a[ps->top] = x;//因为top从0开始，即可作为数组下标，放一个数据自增一个，即top是栈顶的下一个元素的下标
+	ps->top++;
+}
+
+
+
+//出栈
+void StackPop(ST* ps)
+{
+	assert(ps);//断言好习惯
+
+	//判断栈里有效元素个数是否为0，为0就不需要出栈
+	assert(!StackEmpty(ps));
+
+	//出栈，top是可以表示栈里的有效元素的个数，所以直接top--，就相当于访问不到栈顶的元素个，效果上和出栈一样
+	ps->top--;
+}
+
+
+//栈顶的 元素
+STDataType StackTop(ST* ps)
+{
+	assert(ps);//断言好习惯
+
+	//判断栈里有效元素个数是否为0，为0就没有栈顶元素
+	assert(!StackEmpty(ps));
+
+	return ps->a[ps->top - 1];//因为top表示有效元素的个数，又可以表示为下标，所以下标top的前一个数据就是栈顶的数据
+}
+
+
+//判断栈是为空
+bool StackEmpty(ST* ps)
+{
+	assert(ps);//断言好习惯
+
+	// if (ps->top == 0)//因为top即可以是表示有效元素的个数，又可以表示数组的下标，因为它是初始化为0
+	// {
+	// 	return true;
+	// }
+	// else
+	// {
+	// 	return false;
+	// }
+
+    return ps->top==0;
+}
+
+
+//返回栈的有效元素个数
+int StackSize(ST* ps)
+{
+	assert(ps);//断言好习惯
+
+	return ps->top;//因为top即可以是表示有效元素的个数，又可以表示数组的下标，因为它是初始化为0
+}
+
+
+
+
+//开始写，同样的匿名结构体
+//定义一个结构体，用来表示两个栈，用这两个栈来实现队列的 先进先出
+typedef struct {
+    ST pushst;//进数据的栈
+    ST popst;//出数据的栈
+} MyQueue;
+
+//初始化两个栈
+MyQueue* myQueueCreate() {
+    MyQueue* obj=(MyQueue*)malloc(sizeof(MyQueue));//动态开辟一个表示两个栈的 结构体类型空间
+    StackInit(&obj->pushst);//分别初始化两个栈，这里要取地址，是因为我们定义的结构体类型MyQueue里的变量是结构体变量，不是结构体指针
+    StackInit(&obj->popst);
+    return obj;
+}
+
+//入数据，直接往进数据的栈直接入，不管是否有无数据，因为我们进行出数据的功能的时候，会将进数据的栈 里的全部数据倒入到出数据的栈里
+void myQueuePush(MyQueue* obj, int x) {
+    StackPush(&obj->pushst,x);//将数据放入 进数据的栈里
+}
+
+//返回对头的数据
+int myQueuePop(MyQueue* obj) {
+    if(StackEmpty(&obj->popst))//判断出数据的栈里有无数据，无数据，就可以先将进数据的栈 里的数据全部到过来
+    {
+        while(!StackEmpty(&obj->pushst))//进数据的栈里有无数据，有数据，就可以一直倒数据到 出数据的栈里
+        {
+            StackPush(&obj->popst,StackTop(&obj->pushst));
+            StackPop(&obj->pushst);
+        }
+    }
+
+    //进数据的栈 里的数据全部倒入 出数据的栈 后
+    int front=StackTop(&obj->popst);
+    StackPop(&obj->popst);
+    return front;
+}
+
+//返回队尾的数据
+int myQueuePeek(MyQueue* obj) {
+    if(StackEmpty(&obj->popst))//判断出数据的栈里有无数据，无数据，就可以先将进数据的栈 里的数据全部到过来
+    {
+        while(!StackEmpty(&obj->pushst))//进数据的栈里有无数据，有数据，就可以一直倒数据到 出数据的栈里
+        {
+            StackPush(&obj->popst,StackTop(&obj->pushst));
+            StackPop(&obj->pushst);
+        }
+    }
+
+    return StackTop(&obj->popst);
+}
+
+//判断是否为空
+bool myQueueEmpty(MyQueue* obj) {
+    return StackEmpty(&obj->popst)&&StackEmpty(&obj->pushst);//有一个不为空就整体不为空，必须两个都为空才整体为空
+}
+
+//销毁
+void myQueueFree(MyQueue* obj) {
+    StackDestroy(&obj->popst);
+    StackDestroy(&obj->pushst);
+}
+
+
+
+
+
+
+
+
+
+
+
+//https://leetcode.cn/problems/design-circular-queue/
+typedef struct {
+    int* a;//用数组实现这个循环队列
+    int k;//这个循环队列的长度
+    int head;//数组中有效数据的第一个数据的下标
+    int tail;//数组中有效数据的最后一个数据的 下一个下标
+} MyCircularQueue;
+
+//初始化结构体
+MyCircularQueue* myCircularQueueCreate(int k)
+{
+    MyCircularQueue* obj=(MyCircularQueue*)malloc(sizeof(MyCircularQueue));//动态开辟结构体类型MyCircularQueue的空间
+    obj->a=(int*)malloc(sizeof(int)*(k+1));//动态开辟一个数组的空间，会比长度k多开辟一个空间，用来判断这个数组表示的队列是否满了
+    obj->k=k;//存放循环队列要求的长度
+    obj->head=obj->tail=0;//首先下标都初始化为0
+
+    return obj;//返回指向结构体空间的指针
+}
+
+//判断数组表示的队列是否满了
+bool myCircularQueueIsFull(MyCircularQueue* obj){
+    int next=obj->tail+1;
+    //特殊情况
+    if(next==obj->k+1)
+    next=0;
+
+    if(next==obj->head)
+    return true;
+    else
+    return false;
+}
+
+//向循环队列插入一个元素，如果成功插入则返回真；插入失败就返回假，当这个队列满的时候就会插入失败
+bool myCircularQueueEnQueue(MyCircularQueue* obj, int value) {
+    if(myCircularQueueIsFull(obj))//当这个队列满的时候就会插入失败
+    return false;
+
+    obj->a[obj->tail]=value;//放入数据
+    obj->tail++;//tail是数组中有效数据的最后一个数据的 下一个下标
+
+    //特殊情况
+    if(obj->tail==obj->k+1)
+    obj->tail=0;
+
+    return true;
+}
+
+//判断数组表示的队列是否为空
+bool myCircularQueueIsEmpty(MyCircularQueue* obj) {
+    return obj->tail==obj->head;
+}
+
+//循环队列删除一个元素，如果成功删除则返回真；删除失败就返回假，当这个队列空的时候就会删除失败
+bool myCircularQueueDeQueue(MyCircularQueue* obj) {
+    if(myCircularQueueIsEmpty(obj))//当这个队列空的时候就会删除失败
+    return false;
+
+    obj->head++;//删除数据，就可以数组中有效数据的第一个数据的下标head往前移就行
+
+    //特殊情况
+    if(obj->head==obj->k+1)
+    obj->head=0;
+
+    return true;
+}
+
+//从队首获取元素。如果队列为空，返回 -1 。
+int myCircularQueueFront(MyCircularQueue* obj) {
+    //先判断是否为空，为空就返回-1
+    if(myCircularQueueIsEmpty(obj))
+    return -1;
+
+    //不为空
+    return obj->a[obj->head];
+}
+
+//从队尾获取元素。如果队列为空，返回 -1 。
+int myCircularQueueRear(MyCircularQueue* obj) {
+    //先判断是否为空，为空就返回-1
+    if(myCircularQueueIsEmpty(obj))
+    return -1;
+
+    //不为空
+    int prev=obj->tail-1;
+    if(obj->tail==0)
+    prev=obj->k;
+
+    return obj->a[prev];
+}

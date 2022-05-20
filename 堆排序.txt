@@ -1,0 +1,93 @@
+//交换俩个数的函数
+void Swap(HPDataType* a, HPDataType* b)
+{
+	HPDataType tmp = *a;
+	*a = *b;
+	*b = tmp;
+}
+
+//向上调整算法
+//child是插入数据的下标
+void AdjustUp(HPDataType* a, int child)
+{
+	//其父节点的下标
+	int parent = (child - 1) / 2;
+	while (child != 0)//或者child>0,因为最后它的下标会为0
+	{
+		//这里建立小堆，孩子小于父亲就交换
+		if (a[child] < a[parent])
+		{
+			//交换这两个数
+			Swap(&a[child], &a[parent]);
+			child = parent;//下标向上走
+			parent = (child - 1) / 2;
+		}
+		else
+		{
+			break;//除了循环到下标child到0结束循环，这是孩子不小于父亲的情况也结束循环
+			//因为我们没插入一个数，就会用一次这个算法，如果遇见孩子不小于父亲，那么就可以直接跳出循环
+		}
+	}
+}
+
+//向下调整算法
+void AdjustDown(HPDataType* a, int size, int parent)//size是存放的数据的个数
+{
+	//int parent = 0;//交换的那个数据的下标，因为换到了堆顶的位置上，所以下标是0
+	int child = parent * 2 + 1;//默认为左孩子
+	while (child < size)//跳出循环的第一种情况，下标超出数组的下标，因为数组下标最大只能是size-1，因为size是数据的个数
+	{
+		//找出左孩子和右孩子中小的那一个的下标
+		if (child + 1 < size && a[child + 1] < a[child])//child+1<size是防止数组越界
+		{
+			child = child + 1;
+		}
+
+		//判断小的那一个孩子 和 父亲 的大小
+		if (a[child] < a[parent])
+		{
+			Swap(&a[child], &a[parent]);
+			parent = child;
+			child = parent * 2 + 1;
+		}
+		else//跳出循环的第二种情况
+		{
+			break;//除了循环到下标child<size为假结束循环，这是父亲小于等于孩子的情况也结束循环
+				  //因为此时已经满足了小堆
+		}
+	}
+}
+
+
+//堆排序：排升序建立大堆，排降序建立小堆
+//用向上调整算法 建立小堆或大堆 这里例子建立小堆
+void HeapSort(int* a, int n)//传递的实参是 需要排序的数组 和 数组的元素个数
+{
+	////建立堆方式一：时间复杂度O(N*logN)
+	//for (int i = 1; i < n; i++)
+	//{
+	//	//向上调整算法
+	//	//i是插入数据的下标
+	//	AdjustUp(a, i);
+	//}
+
+	
+	//建立堆方式二：时间复杂度O(N)
+	for (int i = (n - 1 - 1) / 2; i >= 0; i++)
+	{
+		//向下调整算法
+		//i是父亲的下标
+		AdjustDown(a, n, i);
+	}
+
+	// 排升序，通过上面的代码将数组建成小堆了
+	int end = n - 1;//end是数组最后一个元素的下标
+
+	while (end > 0)//直到所有数排好
+	{
+		Swap(&a[0], &a[end]);//交换第一个元素和最后一个元素，地址传递
+		AdjustDwon(a, end, 0);//end=n-1：数组元素个数减1，访问不到交换后的数组最后一个元素，
+							  //就相当于把数组最后一个元素移除
+		--end;//end减1继续循环
+	}
+}

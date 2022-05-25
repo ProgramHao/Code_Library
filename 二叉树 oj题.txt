@@ -1,0 +1,358 @@
+https://leetcode.cn/problems/univalued-binary-tree/
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+方法一：更适合
+bool isUnivalTree(struct TreeNode* root){
+    if(root==NULL)
+    return true;
+
+    //有无这两句，都能通过，说明这两句的情况已经其他代码包含了
+    // if(root->left==NULL&&root->right==NULL)
+    // return true;
+
+    //判断错是重点，保证根和左右子树比较的时候，左子树或右子树不为空，因为不为空，才会有值val
+    if((root->left!=NULL&&root->val!=root->left->val)||(root->right!=NULL&&root->val!=root->right->val))
+    return false;
+
+    return isUnivalTree(root->left)&& isUnivalTree(root->right);
+}
+
+
+//方法二:用了全局变量，但是oj题最好不要用全局变量，容易控制不好
+bool flag=true;
+//前序遍历比较
+void preordercampare(struct TreeNode *root,int val){
+    if(root==NULL || flag==false)//这里flag为false的时候，也可以保证不再往下递归，直接返回到上一层，和下面的return配合使用
+    return;
+
+    if(root->val!=val)
+    {
+        flag=false;
+        return;//这里可以在这只子树下，不会往下递归了，直接返回到上一层递归，但是只能保证这棵子树不再往下
+    }
+
+    preordercampare(root->left,val);
+    preordercampare(root->right,val);
+}
+
+bool isUnivalTree(struct TreeNode* root){
+    if(root==NULL)
+    return true;
+
+    flag=true;//因为flag是全局变量，会保留运行的结果，比如上一次的flag为false就会保留这个结果，所以我们每次运行前，先将置为true
+    preordercampare(root,root->val);
+    return flag;
+}
+
+
+
+
+
+https://leetcode.cn/problems/same-tree/
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+
+bool isSameTree(struct TreeNode* p, struct TreeNode* q){
+    if(p==NULL&&q==NULL)
+    return true;
+
+    if(p==NULL||q==NULL)//代码走到这里，p和q之间至少有一个不为空，因为上面的两行代码已经判断了都为空，直接返回
+    return false;
+    
+    //这里就是p和q都不为空，因为上面的代码已经走完了其他的情况
+    if(p->val!=q->val)
+    return false;
+    
+    return isSameTree(p->left,q->left)&&isSameTree(p->right,q->right);
+}
+
+
+
+
+https://leetcode.cn/problems/symmetric-tree/
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+bool treecampare(struct TreeNode *left,struct TreeNode *right){
+    if(left==NULL&&right==NULL)
+    return true;
+
+    if(left==NULL||right==NULL)//代码走到这里，left和right之间至少有一个不为空，因为上面的两行代码已经判断了都为空，直接返回
+    return false;
+
+    //这里就是left和rigth都不为空，因为上面的代码已经走完了其他的情况
+    if(left->val!=right->val)
+    return false;
+
+    //因为是判断对称，所以要 左子树的左 和 右子树的右 进行比较，左子树的右 和 右子树的左 进行比较
+    return treecampare(left->left,right->right)&&treecampare(left->right,right->left);
+}
+bool isSymmetric(struct TreeNode* root){
+    if(root==NULL)//判断为空，为真
+    return true;
+
+    //对左右子树进行比较
+    return treecampare(root->left,root->right);
+}
+
+
+
+
+
+https://leetcode.cn/problems/binary-tree-preorder-traversal/
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+
+ //求二叉树的节点个数，为了知道malloc多大空间的数组
+int TreeSize(struct TreeNode* root){
+    return root==NULL ? 0 : TreeSize(root->left)+TreeSize(root->right)+1;
+}
+
+//前序遍历存放数据到数组中
+void preorder(struct TreeNode* root,int* a,int* pi){
+    if(root==NULL)
+    return;
+
+    a[(*pi)++]=root->val;//存放数据，是后置加加，所以是先放数据后，i才自增的,指针pi解引用 就是下标i
+    preorder(root->left,a,pi);
+    preorder(root->right,a,pi);
+}
+
+int* preorderTraversal(struct TreeNode* root, int* returnSize){
+    *returnSize=TreeSize(root);//returnSize是存放数组个数这个变量所在空间的地址
+    int* a=(int*)malloc(sizeof(int)*(*returnSize));//开辟一个数组的空间
+
+    int i=0;
+    preorder(root,a,&i);//数组下标i要传地址，因为i会递归，但是下标i++后要保留值，所以传递地址
+    return a;
+}
+
+
+
+
+
+
+https://leetcode.cn/problems/binary-tree-inorder-traversal/
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+ //求二叉树节点的个数
+int TreeSize(struct TreeNode* root)
+{
+    return root==NULL ? 0 : TreeSize(root->left)+TreeSize(root->right)+1;
+}
+
+void inorder(struct TreeNode* root,int* a,int* pi)
+{
+    if(root==NULL)
+    return;
+
+    inorder(root->left,a,pi);
+    a[(*pi)++]=root->val;
+    inorder(root->right,a,pi);
+}
+
+int* inorderTraversal(struct TreeNode* root, int* returnSize){
+    *returnSize=TreeSize(root);
+    int* a=(int*)malloc(sizeof(int)*(*returnSize));
+    int i=0;
+    inorder(root,a,&i);
+    return a;
+}
+
+
+
+
+
+https://leetcode.cn/problems/binary-tree-postorder-traversal/
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+//求二叉树节点得个数
+int TreeSize(struct TreeNode* root)
+{
+    return root==NULL ? 0 : TreeSize(root->left)+ TreeSize(root->right)+1;
+}
+
+void postorder(struct TreeNode* root,int* a,int* pi)
+{
+    if(root==NULL)
+    return;
+
+    postorder(root->left,a,pi);
+    postorder(root->right,a,pi);
+    a[(*pi)++]=root->val;
+}
+
+int* postorderTraversal(struct TreeNode* root, int* returnSize){
+    *returnSize=TreeSize(root);
+    int* a=(int*)malloc(sizeof(int)*(*returnSize));
+    int i=0;
+    postorder(root,a,&i);
+    return a;
+}
+
+
+
+
+
+https://leetcode.cn/problems/subtree-of-another-tree/
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+//判断两棵树是否完全相等
+bool isSameTree(struct TreeNode* p, struct TreeNode* q){
+    if(p==NULL&&q==NULL)
+    return true;
+
+    if(p==NULL||q==NULL)//代码走到这里，p和q之间至少有一个不为空，因为上面的两行代码已经判断了都为空，直接返回
+    return false;
+    
+    //这里就是p和q都不为空，因为上面的代码已经走完了其他的情况
+    if(p->val!=q->val)
+    return false;
+    
+    return isSameTree(p->left,q->left)&&isSameTree(p->right,q->right);
+}
+
+bool isSubtree(struct TreeNode* root, struct TreeNode* subRoot){
+    if(root==NULL)//1、最开始大的那棵树为空，返回假 2、递归到子树为空，那么之前的 递归没有子树相等，返回假
+    return false;
+
+    if(isSameTree(root,subRoot))//判断当前的两棵树是否相等，相等就说明存在
+    return true;
+
+    //判断左子树和右子树是否有与数subRoot相等的数，只有存在一个就为真，所以用 逻辑或
+    return isSubtree(root->left,subRoot) || isSubtree(root->right,subRoot);
+}
+
+
+
+
+
+
+https://www.nowcoder.com/practice/4b91205483694f449f94c179883c1fef?tpId=60&&tqId=29483&rp=1&ru=/activity/oj&qru=/ta/tsing-kaoyan/question-ranking
+#include<stdio.h>
+#include<stdlib.h>
+#include<assert.h>
+#include<stdbool.h>
+
+typedef char BTDataType;
+typedef struct BinaryTreeNode
+{
+	struct BinaryTreeNode* left;
+	struct BinaryTreeNode* right;
+	BTDataType data;
+}BTNode;
+
+//创建一个新节点
+BTNode* BuyNode(BTDataType x)
+{
+	BTNode* node = (BTNode*)malloc(sizeof(BTNode));
+	assert(node);
+
+	node->data = x;
+	node->left = NULL;
+	node->right = NULL;
+
+	return node;
+}
+
+//通过前序遍历创建一个二叉树
+BTNode* creattree(char* a,int* pi)
+{
+    if(a[*pi]=='#')
+    {
+        (*pi)++;
+        return NULL;
+    }
+
+    //前序遍历的思想是：根 左子树 右子树
+    BTNode* root=BuyNode(a[(*pi)++]);//前序遍历，先创建一个节点依次放数组的元素
+    root->left=creattree(a,pi);//创建左子树
+    root->right=creattree(a,pi);//创建右子树
+    
+    return root;//返回通过前序遍历创建好的二叉树的根节点
+}
+
+//通过中序遍历依次访问每个节点
+void inorder(BTNode* root)
+{
+    if(root==NULL)
+        return;
+    
+    //中序遍历：左子树 根 右子树
+    inorder(root->left);
+    printf("%c ",root->data);
+    inorder(root->right);
+}
+
+int main()
+{
+    char a[100]={0};
+    scanf("%s",a);
+    
+    //通过前序遍历创建一个二叉树
+    int i=0;
+    BTNode* root=creattree(a,&i);//这里i是数组下标，而i会进入递归，但是要保留i++后的值，所以传递它地址
+    
+    inorder(root);//通过中序遍历依次访问每个节点
+    return 0;
+}

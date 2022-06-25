@@ -1,0 +1,154 @@
+https://leetcode.cn/problems/find-the-difference/
+#include<string.h>
+char findTheDifference(char * s, char * t){
+    int lenth1=strlen(s);
+    int lenth2=strlen(t);
+    //求和的方式
+    int sum1=0,sum2=0;
+    for(int i=0;i<lenth1;i++)
+    {
+        sum1+=s[i];
+    }
+    for(int i=0;i<lenth2;i++)
+    {
+        sum2+=*(t+i);
+    }
+    return sum2-sum1;     
+}
+
+
+https://leetcode.cn/problems/first-unique-character-in-a-string/
+int firstUniqChar(char * s){
+    int lenth=strlen(s);
+    for(int i=0;i<lenth;i++)
+    {
+        int flag=0;
+        for(int j=0;j<lenth;j++)
+        {
+            if(i!=j&&s[i]==s[j])
+            {
+                flag=1;
+                break;
+            }
+        }
+        if(flag==0)
+        return i;
+    }
+    return -1;
+}
+
+
+https://leetcode.cn/problems/ransom-note/
+bool canConstruct(char * ransomNote, char * magazine){
+    int lenth1=strlen(ransomNote);
+    int lenth2=strlen(magazine);
+    for(int i=0;i<lenth1;i++)
+    {
+        int flag=0;
+        for(int j=0;j<lenth2;j++)
+        {
+            if(ransomNote[i]==magazine[j])
+            {
+                magazine[j]=0;
+                flag=1;
+                break;
+            }
+        }
+        if(flag==0)
+        return false;
+    }
+    return true;
+}
+
+
+
+
+https://leetcode.cn/problems/intersection-of-two-arrays/
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+
+int* deletereapt(int* nums1,int nums1Size,int* returnSize1)
+{
+    int a[1001]={0};
+    for(int i=0;i<nums1Size;i++)
+    {
+        a[nums1[i]]++;
+    }
+    int num=0;
+    for(int i=0;i<1001;i++)
+    {
+        if(a[i]>0)
+            ++num;
+    }
+    *returnSize1=num;
+    int* b=(int*)calloc(num,sizeof(int));
+    int j=0;
+    for(int i=0;i<1001;i++)
+    {
+        if(a[i]>0)
+        {
+            b[j]=i;
+            ++j;
+        }
+    }
+    return b;
+}
+
+int* intersection(int* nums1, int nums1Size, int* nums2, int nums2Size, int* returnSize){
+    int returnSize1=0,returnSize2=0;
+    int* tmpnums1=deletereapt(nums1,nums1Size,&returnSize1);
+    int* tmpnums2=deletereapt(nums2,nums2Size,&returnSize2);
+    int* a=(int*)calloc(returnSize1,sizeof(int));
+    int truenum=0;
+    int k=0;
+    for(int i=0;i<returnSize1;i++)
+    {
+        for(int j=0;j<returnSize2;j++)
+        {
+            if(tmpnums1[i]==tmpnums2[j])
+            {
+                a[k]=tmpnums1[i];
+                ++k;
+                ++truenum;
+            }
+        }
+    }
+    *returnSize=truenum;
+    int* c=(int*)calloc(truenum,sizeof(int));
+    for(int i=0;i<truenum;i++)
+    {
+        c[i]=a[i];
+    }
+    return c;
+}
+
+
+
+https://leetcode.cn/problems/reverse-vowels-of-a-string/
+char * reverseVowels(char * s){
+    int lenth=strlen(s);
+    int left=0,right=lenth-1;
+    while(left<right)
+    {
+        while(left<right&&s[left]!='a'&&s[left]!='A'&&s[left]!='E'&&s[left]!='I'&&s[left]!='O'&&s[left]!='U'&&s[left]!='e'&&s[left]!='i'&&s[left]!='o'&&s[left]!='u')
+        {
+            ++left;
+        }
+        while(left<right&&s[right]!='a'&&s[right]!='A'&&s[right]!='E'&&s[right]!='I'&&s[right]!='O'&&s[right]!='U'&&s[right]!='e'&&s[right]!='i'&&s[right]!='o'&&s[right]!='u')
+        {
+            --right;
+        }
+        if(left!=right)
+        {
+            char tmp=s[left];
+            s[left]=s[right];
+            s[right]=tmp;
+            ++left;
+            --right;
+        }
+        else
+        break;
+    }
+    return s;
+}

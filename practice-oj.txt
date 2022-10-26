@@ -1,0 +1,179 @@
+JZ64 求1+2+3+...+n
+int i=1;
+int sum=0;
+class Sum
+{
+public:
+    Sum()
+    {
+        sum+=i;
+        ++i;
+    }
+
+};
+
+class Solution {
+public:
+    int Sum_Solution(int n) {
+        Sum a[n];
+        return sum;
+    }
+};
+
+
+
+
+
+HJ73 计算日期到天数转换
+#include <iostream>
+using namespace std;
+
+void Getmonth(int year,int* arr)
+    {
+        if((year%4==0&&year%100!=0)||(year%400==0))
+            arr[1]=29;
+    }
+
+int main() {
+    int year,month,day;
+    int sum=0;
+    int arr[]={31,28,31,30,31,30,31,31,30,31,30,31};
+    while (cin >> year >> month >> day) { // 注意 while 处理多个 case
+        Getmonth(year, arr);
+        for(int i=0;i<month-1;i++)
+        {
+            sum+=arr[i];
+        }
+        sum+=day;
+        cout << sum << endl;
+    }
+    return 0;
+}
+// 64 位输出请用 printf("%lld")
+
+
+
+
+KY111 日期差值
+#include<iostream>
+#include<cstdio>
+using namespace std;
+int DayTab[2][13] = {
+    {0,31,28,31,30,31,30,31,31,30,31,30,31},
+    {0,31,29,31,30,31,30,31,31,30,31,30,31},
+};
+bool IsLeapYear(int year) {
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+int YearTab[2] = { 365,366 };
+int main() {
+    int year1, month1, day1;
+    int year2, month2, day2, minyear, maxyear;
+    int number, num1, num2;
+    while (scanf("%04d%02d%02d\n%04d%02d%02d", &year1, &month1, &day1, &year2, &month2, &day2) != EOF) {
+        number = 0;
+        minyear = year1 < year2 ? year1 : year2;
+        maxyear = (minyear == year1) ? year2 : year1;
+        while (minyear < maxyear) {
+            number += YearTab[IsLeapYear(minyear)];
+            ++minyear;
+        }
+        num1=0;
+        for (int i = 0; i < month1; ++i) {
+            num1 += DayTab[IsLeapYear(year1)][i];
+        }
+        num1 += day1;
+        num2=0;
+        for (int i = 0; i < month2; ++i) {
+            num2 += DayTab[IsLeapYear(year2)][i];
+        }
+        num2 += day2;
+        number += (year1 < year2 ? (num2 - num1+1) : (num1 - num2+1));
+        cout << number << endl;
+    }
+    return 0;
+}
+// 64 位输出请用 printf("%lld")
+
+
+
+
+
+KY222 打印日期
+#include <iostream>
+using namespace std;
+
+int main() {
+    int year,day;
+    
+    while (cin >> year >> day) { // 注意 while 处理多个 case
+    int arr[]={0,31,28,31,30,31,30,31,31,30,31,30,31};
+    int sum=0;
+    int j=0;
+    int dday=0;
+        if((year%4==0&&year%100!=0)||(year%400==0))
+        {
+            arr[2]=29;
+        }
+        for(int i=0;i<13;i++)
+        {
+            j=i;
+            sum+=arr[i];
+            if(sum>day)
+            break;
+        }
+        sum=sum-arr[j];
+        dday=day-sum;
+        if(dday==0)
+        {
+            j=j-1;
+            dday=arr[j];
+        }
+       printf("%04d-%02d-%02d\n", year, j, dday);
+    }
+}
+// 64 位输出请用 printf("%lld")
+
+
+
+
+KY258 日期累加
+#include <iostream>
+#include<stdio.h>
+using namespace std;
+
+int Getmonthday(int year,int month)
+{
+    int arr[]={0,31,28,31,30,31,30,31,31,30,31,30,31};
+    int day=arr[month];
+    if(month==2&&((year%4==0&&year%100!=0)||(year%400==0)))
+    {
+        day+=1;
+    }
+    return day;
+}
+
+int main() {
+    int year,month,day,n,m;
+    cin >> m;
+    while(m--)
+    {
+    while (cin >> year >> month >> day >> n) { // 注意 while 处理多个 case
+    day+=n;
+        while(day>Getmonthday(year, month))
+        {
+            day-=Getmonthday(year, month);
+
+            ++month;
+            if(month==13)
+            {
+                month=1;
+                ++year;
+            }
+        }
+        printf("%04d-%02d-%02d\n",year,month,day);
+    }
+    }
+    return 0;
+}
+// 64 位输出请用 printf("%lld")

@@ -1,0 +1,240 @@
+#include<iostream>
+#include<vector>
+#include<list>
+
+//算法函数的头文件，这里用了find函数
+#include <algorithm>
+
+//用了产生随机值srand()函数
+#include <time.h>
+using namespace std;
+
+void test_list1()
+{
+	//定义一个数据类型为int的 类list类型的对象 lt
+	list<int> lt;
+	lt.push_back(1);
+	lt.push_back(2);
+	lt.push_back(3);
+	lt.push_back(4);
+	lt.push_back(5);
+
+	list<int>::iterator it = lt.begin();
+	while (it != lt.end())
+	{
+		cout << *it << " ";
+		++it;
+	}
+	cout << endl;
+
+	it = lt.begin();
+	while (it != lt.end())
+	{
+		*it *= 2;
+		++it;
+	}
+	cout << endl;
+
+	for (auto e : lt)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+
+	lt.push_front(10);
+	lt.push_front(20);
+	lt.push_front(30);
+	lt.push_front(40);
+
+	lt.pop_back();
+	lt.pop_back();
+
+	for (auto e : lt)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+}
+
+
+
+void test_list2()
+{
+	list<int> lt;
+	lt.push_back(1);
+	lt.push_back(2);
+	lt.push_back(3);
+	lt.push_back(4);
+	lt.push_back(5);
+
+	//find函数是放在算法函数里
+	//头文件是algorithm
+	//直接放在算法函数里，那么stl都可以用
+	//就不用在某个stl再设计了
+	//auto除了有自动存储器的功能外，还有自动识别数据类型
+	auto pos = find(lt.begin(), lt.end(), 3);
+	if (pos != lt.end())//判断是否找到
+	{
+		// pos是否会失效？不会
+		//因为找到了这个pos后，如果插入数据，链表会越来越长
+		//pos始终会指向 某个数据的空间(节点)
+		lt.insert(pos, 30);
+		*pos *= 100;
+	}
+
+	for (auto e : lt)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+
+	pos = find(lt.begin(), lt.end(), 4);
+	if (pos != lt.end())//判断是否找到
+	{
+		// pos是否会失效？会
+		//因为可能会删除最后一个数据，那么这个时候
+		//pos指向的那一块空间会被释放，pos就变成野指针了
+		lt.erase(pos);
+		// cout << *pos << endl;
+	}
+
+	for (auto e : lt)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+}
+
+
+
+void test_list3()
+{
+	list<int> lt;
+	lt.push_back(1);
+	lt.push_back(3);
+	lt.push_back(2);
+	lt.push_back(3);
+	lt.push_back(4);
+	lt.push_back(3);
+	lt.push_back(3);
+	lt.push_back(5);
+
+	for (auto e : lt)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+
+	//成员函数remove很少用，就是把链表的某个数据全部删除了
+	lt.remove(3);
+
+	for (auto e : lt)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+
+	//系统里的算法库：库函数sort()
+	//但是对链表list却 无法使用，因为链表list的空间是 不连续的
+	// 类vector可以用，因为顺序表的空间 是连续的
+	// sort(lt.begin(), lt.end());
+
+	//类list的成员函数 sort();
+	lt.sort();
+
+	for (auto e : lt)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+}
+
+
+//有一个问题： 如果现在排N个数据需要排序，
+//是用顺序表vector，加上算法库的库函数sort 好？
+//还是用链表list，加上list的成员函数sort 好？
+//下面程序验证
+//其实 算法库的库函数sort 与 list的成员函数sort 的效率差不多
+//但是顺序表vector更有优势，会更好
+//所以顺序表vector，加上算法库的库函数sort 会比 链表list，加上list的成员函数sort 快5到6倍
+//所以用链表list来排序的 价值不大
+void test_op1()
+{
+	srand(time(0));
+	const int N = 100000;
+	vector<int> v;
+	v.reserve(N);
+
+	list<int> lt1;
+	list<int> lt2;
+
+	for (int i = 0; i < N; ++i) 
+	{
+		auto e = rand();
+		v.push_back(e);
+		lt2.push_back(e);
+	}
+
+	int begin1 = clock();
+
+	sort(v.begin(), v.end());
+
+	int end1 = clock();
+
+	int begin2 = clock();
+	lt2.sort();
+	int end2 = clock();
+
+	printf("vector sort:%d\n", end1 - begin1);
+	printf("list sort:%d\n", end2 - begin2);
+}
+
+//再比如我们用 顺序表vector，加上算法库的库函数sort排好序后，再拷贝给链表list
+//都还比 用链表list，加上list的成员函数sort 快几倍
+// 所以用链表排序的 价值不大
+void test_op2()
+{
+	srand(time(0));
+	const int N = 100000;
+	vector<int> v;
+	v.reserve(N);
+
+	list<int> lt1;
+	list<int> lt2;
+
+	for (int i = 0; i < N; ++i)
+	{
+		auto e = rand();
+		lt1.push_back(e);
+		lt2.push_back(e);
+	}
+
+	// 拷贝到vector排序，排完以后再拷贝回来
+	int begin1 = clock();
+	for (auto e : lt1)
+	{
+		v.push_back(e);
+	}
+	sort(v.begin(), v.end());
+	size_t i = 0;
+	for (auto& e : lt1)
+	{
+		e = v[i++];
+	}
+	int end1 = clock();
+
+	int begin2 = clock();
+	lt2.sort();
+	int end2 = clock();
+
+	printf("copy vector sort:%d\n", end1 - begin1);
+	printf("list sort:%d\n", end2 - begin2);
+}
+
+
+
+int main()
+{
+	test_list3();
+	return 0;
+}

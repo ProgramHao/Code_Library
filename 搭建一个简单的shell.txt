@@ -1,0 +1,64 @@
+#include<stdio.h>
+    2 #include<stdlib.h>
+    3 #include<string.h>
+    4 #include<unistd.h>                                                                                                                                                                                         
+    5 #include<sys/wait.h>
+    6 #include<sys/types.h>
+    7 
+    8 #define NUM 1000
+    9 #define SIZE 32
+   10 #define SEP " "
+   11 
+   12 //存放完整的命令加参数列表
+   13 char cmd_line[NUM];
+   14 //存放不同的命令加参数
+   15 char *g_argv[SIZE];
+   16 
+   17 int main()
+   18 {
+   19   while(1)
+   20   {
+   21     printf("[root@local myshell]# ");
+   22     fflush(stdout);
+   23     memset(cmd_line,'\0',sizeof cmd_line);
+   24 
+   25     if(fgets(cmd_line,sizeof cmd_line,stdin)==NULL)
+   26     {
+   27       continue;
+   28     }
+   29     cmd_line[strlen(cmd_line)-1]='\0';
+   30 
+   31     g_argv[0]=strtok(cmd_line,SEP);
+   32     int index=1;
+   33     if(strcmp(g_argv[0],"ls")==0)
+   34     {
+   35       g_argv[index++]="--color=auto";
+   36     }
+   37 
+   38     while(g_argv[index++]=strtok(NULL,SEP));
+   39 
+   40     if(strcmp(g_argv[0],"cd")==0)
+   41     {
+   42       if(g_argv[1]!=NULL)
+   43       {
+   44         chdir(g_argv[1]);
+   45       }
+   46       continue;
+   47     }
+   48 
+   49     pid_t id=fork();
+   50     if(id==0)
+   51     {
+   52       printf("子进程\n");
+   53       execvp(g_argv[0],g_argv);
+   54       exit(1);
+   55     }
+   56     int status=0;
+   57     pid_t ret=waitpid(id,&status,0);
+   58     if(ret>0)
+   59     {
+   60       printf("exit code:%d\n",WEXITSTATUS(status));
+   61     }
+   62   }
+   63   return 0;
+   64 } 

@@ -1,0 +1,266 @@
+////父类
+//class Person {
+//public:
+//	virtual void BuyTicket() { cout << "买票-全价" << endl; }
+//
+//	virtual void Func() { cout << "Func" << endl; }
+//
+//
+//	int _a = 0;
+//};
+//
+////子类
+//class Student : public Person {
+//public:
+//	//BuyTicket()这个虚函数在这里构成 虚函数重写，即这个虚函数在子类Student重写了
+//	virtual void BuyTicket() { cout << "买票-半价" << endl; }
+//
+//	int _b = 0;
+//};
+//
+////通过父类对象的指针或引用访问构成了虚函数重写的该虚函数
+//void Func(Person& p)
+//{
+//	//这里的BuyTicket()就再继承中构成了多态
+//	//因为第一：BuyTicket()这个虚函数构成了虚函数重写；
+//	//第二：这里通过父类Person对象的指针或引用调用这个虚函数
+//	//这两点同时满足，这里就构成了多态
+//	p.BuyTicket();
+//}
+//
+//int main()
+//{
+//	//父类对象
+//	Person Mike;
+//	Func(Mike);
+//
+//	//子类对象
+//	Student Johnson;
+//	Func(Johnson);//子类对象通过切片成父类对像
+//
+//	return 0;
+//}
+
+
+
+
+//// 建议在继承中析构函数定义成虚函数
+//class Person {
+//public:
+//	virtual ~Person() { cout << "~Person()" << endl; }
+//
+//	//int* _ptr;
+//};
+//
+//class Student : public Person {
+//public:
+//	// 析构函数名会被处理成destructor，所以这里析构函数完成虚函数重写
+//	//只要父类的析构加了virtual，子类的析构加不加virtual都可以，但是最好加上，防止出错
+//	virtual ~Student() { cout << "~Student()" << endl; }
+//};
+//
+//int main()
+//{
+//	Person* ptr1 = new Person;
+//	delete ptr1;
+//
+//	//Person* ptr2 = new Student;
+//	//delete ptr2;//delete的时候，会去调用该类的析构函数
+//
+//	//Person p;
+//	//Student s;
+//
+//	return 0;
+//}
+
+
+
+
+////class car
+////{
+////public:
+////	virtual void drive() = 0;
+////};
+////
+////class bmw :public car
+////{
+////public:
+////	virtual void drive() { cout << "benz-舒适" << endl; }
+////};
+////
+////class car{
+////public:
+////	virtual void drive(){}
+////};
+////
+////class benz :public car {
+////public:
+////	// 检查子类虚函数是否完成重写
+////	virtual void drive() override { cout << "benz-舒适" << endl; }
+////};
+////
+////int main()
+////{
+////	bmw b;
+////	return 0;
+////}
+
+
+
+
+
+//
+//class Car
+//{
+//public:
+//	virtual void Drive() = 0;
+//};
+//
+//class BMW : public Car
+//{
+//public:
+//	virtual void Drive()
+//	{
+//		cout << "操控-好开" << endl;
+//	}
+//};
+//
+//class Benz :public Car
+//{
+//public:
+//	virtual void Drive()
+//	{
+//		cout << "Benz-豪华舒适" << endl;
+//	}
+//};
+//
+//int main()
+//{
+//	Car* ptr = new BMW;
+//	ptr->Drive();
+//
+//	ptr = new Benz;
+//	ptr->Drive();
+//
+//	return 0;
+//}
+
+
+
+
+
+//
+////因为上面不管是父类还是子类的虚函数的函数指针类型都是void(*)(),
+////所以我们这里将这个函数指针类型名重定义下，注意重定义后名字放的位置，
+////VFPTR的位置，这是语法要求
+//typedef void(*VFPTR)();
+//
+////void PrintVFTable(VFPTR table[])//与下面的写法等价
+////就比如 void aaa(int a[]) 与 void aaa(int* a)等价一样
+////我们这里用代码的形式，将虚表里的存放的虚函数地址打印出来，
+////因为虚表就是一个函数指针数组，空间是连续的
+//void PrintVFTable(VFPTR* table)
+//{
+//	for (size_t i = 0; table[i] != nullptr; ++i)
+//		//for (size_t i = 0; i < n; ++i)
+//	{
+//		//以十六进制地址的形式打印出虚函数的地址
+//		printf("vft[%d]:%p->", i, table[i]);
+//		//下面再调用一下是哪个虚函数，方便观看
+//		VFPTR pf = table[i];
+//		pf();
+//	}
+//	cout << endl;
+//}
+//
+////父类1
+//class Base1 {
+//public:
+//	virtual void func1() { cout << "Base1::func1" << endl; }
+//	virtual void func2() { cout << "Base1::func2" << endl; }
+//private:
+//	int b1 = 1;
+//};
+//
+////父类2
+//class Base2 {
+//public:
+//	virtual void func1() { cout << "Base2::func1" << endl; }
+//	virtual void func2() { cout << "Base2::func2" << endl; }
+//private:
+//	int b2 = 2;
+//};
+//
+////子类多继承父类1和父类2
+//class Derive : public Base1, public Base2 {
+//public:
+//	virtual void func1() { cout << "Derive::func1" << endl; }
+//	virtual void func3() { cout << "Derive::func3" << endl; }
+//private:
+//	int d = 3;
+//};
+//
+//
+//int main()
+//{
+//	// 同一个类型的对象共用一个虚表
+//	// vs下 不管是否完成重写，子类虚表跟父类虚表都不是同一个
+//
+//	//PrintVFTable((VFPTR*)*(int*)(&p1));
+//	//因为我们想得到 指针_vfptr指向的那块空间存放的 第一个虚函数的函数地址
+//	//我们知道指针在32位下的都是4个字节，所以(int*)(&p1)就能得到 
+//	//存放第一个虚函数的函数地址的那块空间的地址，然后解引用*(int*)(&p1)
+//	//就能得到第一个虚函数的函数地址，因为虚表就是一个函数指针数组，
+//	//是存放虚函数地址的数组，所以空间是连续的，地址在32位下只占4个字节。
+//	//因为函数PrintVFTable()形参的类型是函数指针类型VFPTR*，
+//	//所以最后再强制转换成(VFPTR*)*(int*)(&p1)
+//
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Derive d;
+//	cout << sizeof(d) << endl;
+//	
+//	//查看父类1的虚表，因为每个虚表都是以空指针nullprt结尾。
+//	//所以(*(int*)&d) 强转从int*再解引用，就能得到父类1的第一个虚函数的地址。
+//	//因为函数PrintVFTable()形参的类型是函数指针类型VFPTR*。
+//	cout << "子类继承后父类1的虚表" << endl;
+//	PrintVFTable((VFPTR*)(*(int*)&d));
+//
+//	//查看父类2的虚表
+//	//sizeof(Base1)可以算出Base1的成员变量占用的大小，单位是字节，
+//	//所以(char*)&d要强转成员成字符型，这样加上Base1的成员变量占用的大小，
+//	//就能将指针跳到指向对象d中父类2的成员变量的空间，
+//	//然后后面就和上面一样的操作的
+//	cout << "子类继承后父类2的虚表" << endl;
+//	PrintVFTable((VFPTR*)(*(int*)((char*)&d+sizeof(Base1))));
+//
+//
+//	//第二种方法：指向对象d中父类2的成员变量的空间，用切片的方式
+//	//Base2* ptr2 = &d;
+//	//cout << "子类继承后父类2的虚表" << endl;
+//	//PrintVFTable((VFPTR*)(*(int*)(ptr2)));
+//	
+//
+//
+//	// 符合多态，去指向对象虚函数表中去找func1的地址调用
+//	Base1* ptr1 = &d;
+//	ptr1->func1();//多态调用，所以是调用的是子类中构成了虚函数重写的虚函数func1()
+//
+//	Base2* ptr2 = &d;
+//	ptr2->func1();//多态调用，所以是调用的是子类中构成了虚函数重写的虚函数func1()
+//
+//	cout << endl;
+//
+//	d.func1();//这个是子类对象访问子类的虚函数，这里就是普通调用
+//
+//	//我们知道函数名就是函数地址，
+//	//但是如果我们要用类里的函数名，来知道它的函数地址，
+//	//比如子类里的函数名func1,首先编译器在全局和局部找都没有，就要去类里找，
+//	//这个时候就要用域作用限定符::来告诉编译器在哪里，
+//	//还有一个语法规定：用类里的函数名表示函数地址的时候，最前面要加上去地址操作符&
+//	//&Derive::func1
+//	//printf("%p\n", &Derive::func1);
+//
+//	return 0;
+//}
+

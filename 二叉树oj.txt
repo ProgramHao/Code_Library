@@ -1,0 +1,218 @@
+606. 根据二叉树创建字符串
+class Solution {
+public:
+    string tree2str(TreeNode* root) {
+        if(root==nullptr)
+        return string();//返回一个空字符串，这里用的匿名对象
+
+        string str;
+        str+=to_string(root->val);//函数to_string()库函数可以将数值转成字符串类型string
+
+        //左边不为空 或 左边为空但是右边不为空 这两种情况都要执行下面的代码
+        if(root->left||root->right)
+        {
+            str+='(';
+            str+=tree2str(root->left);
+            str+=')';
+        }
+
+        //右边不为空，右边需要加括号
+        if(root->right)
+        {
+            str+='(';
+            str+=tree2str(root->right);
+            str+=')';
+        }
+
+        return str;
+    }
+};
+
+
+
+
+102. 二叉树的层序遍历
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        queue<TreeNode*> q;//队列存放的数据 是 指向节点的指针
+        size_t levelSize=0;//每一层需要入vector<int> v的个数
+        if(root)//先把指向根节点的指针放进队列
+        {
+            q.push(root);
+            levelSize=1;//因为是根节点，所以这一层需要入vector<int> v的个数是1
+        }
+
+
+        vector<vector<int>> vv;//用于返回
+        //队列进行层序遍历
+        while(!q.empty())
+        {
+            //一层一层的控制来出队列
+            vector<int> v;
+            for(size_t i=0;i<levelSize;++i)
+            {
+                TreeNode* front=q.front();//保存队列第一个数据，这里的数据是指向节点的指针
+                q.pop();//出队列
+                v.push_back(front->val);//将出队列的指针，这个指针指向的节点的数据放入vector<int> v中
+
+                if(front->left)//出队列的指针 的左指针不为空，就入队列
+                    q.push(front->left);
+                if(front->right)//出队列的指针 的右指针不为空，就入队列
+                    q.push(front->right);
+            }
+
+            //每一层出完后，都要将v插入到vv中
+            vv.push_back(v);
+            //这是下一层需要入vector<int> v的个数
+            levelSize=q.size();//画图就明白了
+        }
+
+        //出循环后，返回vv即可
+        return vv;
+    }
+};
+
+
+
+107. 二叉树的层序遍历 II
+class Solution {
+public:
+    vector<vector<int>> levelOrderBottom(TreeNode* root) {
+        queue<TreeNode*> q;//队列存放的数据 是 指向节点的指针
+        size_t levelSize=0;//每一层需要入vector<int> v的个数
+        if(root)//先把指向根节点的指针放进队列
+        {
+            q.push(root);
+            levelSize=1;//因为是根节点，所以这一层需要入vector<int> v的个数是1
+        }
+
+
+        vector<vector<int>> vv;//用于返回
+        //队列进行层序遍历
+        while(!q.empty())
+        {
+            //一层一层的控制来出队列
+            vector<int> v;
+            for(size_t i=0;i<levelSize;++i)
+            {
+                TreeNode* front=q.front();//保存队列第一个数据，这里的数据是指向节点的指针
+                q.pop();//出队列
+                v.push_back(front->val);//将出队列的指针，这个指针指向的节点的数据放入vector<int> v中
+
+                if(front->left)//出队列的指针 的左指针不为空，就入队列
+                    q.push(front->left);
+                if(front->right)//出队列的指针 的右指针不为空，就入队列
+                    q.push(front->right);
+            }
+
+            //每一层出完后，都要将v插入到vv中
+            vv.push_back(v);
+            //这是下一层需要入vector<int> v的个数
+            levelSize=q.size();//画图就明白了
+        }
+
+        //102. 二叉树的层序遍历
+        //直接用上面链接题的代码，然后将vv逆置一下，就行了
+        reverse(vv.begin(),vv.end());
+
+        //出循环后，返回vv即可
+        return vv;
+    }
+};
+
+
+
+
+236. 二叉树的最近公共祖先
+class Solution {
+public:
+    //是否找到节点的路径
+    bool FindPath(TreeNode* root,TreeNode* x,stack<TreeNode*>& path)
+    {
+        //空树的情况和递归结束的条件
+        if(root==nullptr)
+        return false;
+
+        //不管root节点是不是要找的节点，都先入栈，入栈后再判断不是就出栈
+        path.push(root);
+        //如果该节点就是要找的节点，返回true
+        if(root==x)
+            return true;
+
+        //不是就从root节点的左子树去找
+        if(FindPath(root->left,x,path))
+            return true;
+        //不是就从root节点的右子树去找
+        if(FindPath(root->right,x,path))
+            return true;
+        
+        //在左子树没找到，就出栈左子树最左的那一个节点
+        //在右子树没找到，就出栈右子树最右的那一个节点
+        //然后返回fasle
+        path.pop();
+        return false;
+    }
+
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        //用栈来存放指向节点的地址,通过入栈和出栈来找路径
+        stack<TreeNode*> pPath,qPath;
+        FindPath(root,p,pPath);
+        FindPath(root,q,qPath);
+
+        //类似链表的相交
+        while(pPath.size()!=qPath.size())
+        {
+            if(pPath.size()>qPath.size())
+                pPath.pop();
+            else
+                qPath.pop();
+        }
+
+        while(pPath.top()!=qPath.top())
+        {
+            pPath.pop();
+            qPath.pop();
+        }
+
+        return pPath.top();//或return qPath.pop();都是返回的同一个节点的指针
+    }
+};
+
+
+
+
+
+
+
+JZ36 二叉搜索树与双向链表
+class Solution {
+public:
+    void InOderConvert(TreeNode* cur,TreeNode*& prev){
+		if(cur==nullptr)
+			return;
+
+		//通过中序遍历，将链表中的节点里的指针重新链接，画递归展开图就明白了
+		InOderConvert(cur->left,prev);
+
+		cur->left=prev;
+		if(prev)//prev不为空nullptr的时候
+			prev->right=cur;
+
+		prev=cur;
+
+		InOderConvert(cur->right,prev);
+	}
+
+    TreeNode* Convert(TreeNode* pRootOfTree) {
+        TreeNode* prev=nullptr;
+		InOderConvert(pRootOfTree,prev);
+
+		//上面的递归结束后，变成了双向循环链表，然后找新链表的头
+		TreeNode* head=pRootOfTree;
+		while(head && head->left)
+			head=head->left;
+
+		return head;
+	}
+};

@@ -1,0 +1,300 @@
+#include<iostream>
+#include<set>
+#include<string>
+using namespace std;
+
+//STL中的部分容器，比如：vector、list、deque、
+//这些容器统称为序列式容器，因为其底层为 线性序列 的数据结构
+///////////二叉树就是 非线性序列 的数据结构//////////////
+
+//用用容器set
+void test_set()
+{
+	/*set<int> s;
+	s.insert(4);
+	s.insert(2);
+	s.insert(1);*/
+
+	//容器set的底层是平衡二叉树
+
+	//可以这样初始化，这是c++11新添加的构造函数，
+	//vector和list也可以这样
+	//set<int> s = { 1, 2, 1, 6, 3, 8, 5 };
+
+	//容器set不允许键值key冗余，意思就是数据不会有一样的被放进容器里
+
+	int a[] = { 1, 2, 1, 6, 3, 8, 5 };
+	//不加第二个模板参数(比较方式仿函数)，默认是less<T>，
+	// 那么就是排的升序
+	//set<int> s(a, a + sizeof(a) / sizeof(int));
+	//可以自己给第二个模板参数，这里大于的仿函数greater<T>,
+	//那么就是排降序
+	set<int, greater<int>> s(a, a + sizeof(a) / sizeof(int));
+
+	// 排序 + 去重
+	// 排序是因为是平衡二叉树作为底层，并用平衡二叉树的中序遍历进行排序
+	//有去重是因为容器set不允许键值key冗余
+	set<int>::iterator it = s.begin();
+	//容器set里的数据不允许改，容器set的底层是平衡二叉树，
+	// 所以set的数据是有序的，如果不能修改某个数据，这样就破坏了有序性
+	while (it != s.end())
+	{
+		cout << *it << " ";
+		++it;
+	}
+	cout << endl;
+
+	for (auto e : s)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+
+	//增加、删除、查找都有，只是没有修改，原因在上面的注释中 
+	s.erase(30);
+	for (auto e : s)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+
+	set<int>::iterator pos = s.find(20);
+	//要判断是否找到
+	if (pos != s.end())
+	{
+		//这样才可以用 这个找到该数据的迭代器 用容器的erase删除，
+		//因为这个位置必须存在才能用改成员函数，不然会出问题
+		s.erase(pos);
+	}
+
+	for (auto e : s)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+
+	cout << s.count(3) << endl;
+	cout << s.count(30) << endl;
+}
+
+
+
+
+
+#include<set>
+//用用容器multiset,容器multiset的头文件也是set
+void test_set3()
+{
+	//容器multiset的底层依旧是平衡二叉树
+	//容器multiset允许键值key冗余，意思就是一样的数据可以同时放入
+	int a[] = { 3,1, 2, 1, 6, 3, 8,3, 5,3 };
+	multiset<int> s(a, a + sizeof(a) / sizeof(int));
+
+	// 排序：
+	//排序是因为是平衡二叉树作为底层，并用平衡二叉树的中序遍历进行排序。
+	//没有去重是因为容器multiset允许键值key冗余
+	for (auto e : s)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+
+	cout << s.count(1) << endl;
+
+	// 其中容器multiset成员变量find() 与 容器set成员函数find() 有区别，
+	//容器multiset成员变量find()如果有多个值，返回中序的第一个
+	auto pos = s.find(3);
+	while (pos != s.end())
+	{
+		cout << *pos << " ";
+		++pos;
+	}
+	cout << endl;
+
+	// 删除所有的3，因为容器multiset允许键值key冗余，所以要删除完
+	s.erase(3);
+	for (auto e : s)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+
+	pos = s.find(1);
+	if (pos != s.end())
+	{
+		s.erase(pos);
+	}
+	for (auto e : s)
+	{
+		cout << e << " ";
+	}
+	cout << endl;
+}
+
+
+
+
+
+
+
+#include<iostream>
+#include<map>
+//类pair的头文件，类pair也叫键值对，可以去看看文档；也是类函数模板make_pair()的头文件
+#include<utility> 
+#include<string> 
+//用用容器map
+//容器map的底层也是平衡二叉树
+//可以理解由相同大小的空间，构成平衡二叉树的样式链接起来，
+//每块相同相同大小的空间，有两个变量first和second，
+//变量first存放就是key，变量second存放就是value，
+void test_map1()
+{
+	//容器map有4个模板参数，前俩个没有缺省值，所以要自己给
+	//map<string, string> dict;
+	//容器map就要用键值对pair，键值对pair也是一种类，
+	// 键值对pair的两个模板参数就是容器map的前两个。
+	// 键值对pair的对象kv1 括号后的是构造函数初始化这两个参数
+	//pair<string, string> kv1("sort", "排序");
+	//成员函数insert要给键值对pair的对象
+	//dict.insert(kv1);
+
+	
+	map<string, string> dict;
+	//上面太复杂，可以用 匿名对象pair<string, string>("sort", "排序") 进行简化
+	//即在容器map中插入的就是一个键值对，即插入的一个类类型pair的对象，
+	//可以理解为容器map存放的是类类型pair的对象，
+	//不过类map的前两个模板参数 和 类pair两个模板参数 是一样的，共用的
+	dict.insert(pair<string, string>("sort", "排序"));
+	dict.insert(pair<string, string>("test", "测试"));
+	dict.insert(pair<string, string>("string", "字符串"));
+	//类类型pair<string, string>名字太长，typedef重定义一下
+	typedef pair<string, string> DictKV;
+	dict.insert(DictKV("string", "xxx"));
+	//如果不想用typedef，也可以用类函数模板makepair()，
+	// 可以去看它的定义，直接给给"left", "左边",这也是匿名对象给形参
+	//就可以不用写具体的模板参数
+	dict.insert(make_pair("left", "左边"));
+
+
+	//map<string, string>::iterator it = dict.begin();
+	//觉得上面的写法太长，可以用auto自动识别类型
+	auto it = dict.begin();
+	while (it != dict.end())
+	{
+		//it是迭代器，解引用就是该迭代器指向的那一块空间
+		//(*it)就是容器map里的其中一块空间，多个相同的这种空间构成map容器
+		// 这一块空间就是存放的数据，其中有两个变量first和second
+		//变量first的类型 = map第一个模板参数，存放的是key
+		// 变量second的类型 = map第二个模板参数，存放的是vaule
+		// 去看map文档的类型名重定义那个表就知道了
+		//cout << (*it).first << (*it).second <<endl;
+		//比起上面的写法，更喜欢下面的写法，
+		//其实补全应该是it->->first,太难看了，编译器省略一个->
+		cout << it->first << it->second << endl;
+		++it;
+	}
+	cout << endl;
+
+	for (const auto& kv : dict)
+	{
+		cout << kv.first << ":" << kv.second << endl;
+	}
+	cout << endl;
+}
+
+
+
+
+
+
+
+//继续用用容器map
+#include<iostream>
+#include<map>
+//类pair的头文件，类pair也叫键值对，可以去看看文档；也是类函数模板make_pair()的头文件
+#include<utility> 
+#include<string> 
+using namespace std;
+
+void test_map2()
+{
+///////用容器map 实现一个统计水果出现的次数////////////////////
+	string arr[] = { "苹果", "西瓜", "苹果", "西瓜", "苹果", "苹果", "西瓜", "苹果", "香蕉", "苹果", "香蕉" };
+	//map<string, int> countMap;
+	//for (auto& str : arr)
+	//{
+	//	map<string, int>::iterator it = countMap.find(str);
+	//	if (it != countMap.end())//该水果在，就++一次second
+	//	{
+	// 		//(*it)就是容器map里的其中一块空间，多个相同的这种空间构成map容器
+			// 这一块空间就是存放的数据，其中有两个变量first和second
+			//变量first的类型 = map第一个模板参数，即就是key
+			//变量second的类型 = map第二个模板参数，即就是vaule
+			//看map文档里面的类型名重定义表 和 pair文档 就明白了
+			//(*it).second++;
+			//比起上面的写法，更喜欢下面的写法，
+			//其实补全应该是it->->second++,太难看了，编译器省略一个->
+	//		it->second++;
+	//	 }
+	//	 else  
+	//	 {
+	//       //该水果不在，就在容器map插入一个
+	//		 countMap.insert(make_pair(str, 1));
+	//	 }
+	//}
+
+
+	//比起上面入容器map的方法，下面的方法更简洁
+	map<string, int> countMap;
+	for (auto& str : arr)
+	{
+		// 1、str不在countMap中，插入类类型pair的匿名对象pair(str, int()),
+		// 因为会返回该对象value的引用，所以++就可以修改value；注意在vs下int()是0
+		// 2、str在countMap中，返回value(次数)的引用，所以++就可以修改value;
+		//看map的文档里的操作符[]
+		countMap[str]++;
+	}
+
+	
+	//遍历一遍容器map，就可以得到水果的次数
+	map<string, int>::iterator it = countMap.begin();
+	while (it != countMap.end())
+	{
+		//变量first就是key，变量second就是value
+		//看map文档里面的类型名重定义表 和 pair文档 就明白了
+		cout << it->first << ":" << it->second << endl;
+		++it;
+	}
+	cout << endl;
+
+
+
+
+
+/////////用容器map 实现一个中英互译/////////////////
+	map<string, string> dict;
+	dict.insert(make_pair("sort", "排序"));
+	//看map的文档里的操作符[]
+	dict["insert"];   //插入一个类类型pair的对象，这个对象里的first是"insert"
+
+	//插入一个类类型pair的对象，这个对象里的key(first)是"insert"；
+	//因为会 返回这个类类型pair的对象 里的value(second)引用，所以可以修改value
+	dict["insert"] = "插入"; 
+	dict["left"] = "左边";
+
+	multimap<string, string> mdict;
+	mdict.insert(make_pair("sort", "排序"));
+	mdict.insert(make_pair("left", "左边"));
+	mdict.insert(make_pair("left", "左边"));
+	mdict.insert(make_pair("left", "剩余"));
+}
+
+
+
+
+int main()
+{
+	test_map1();
+
+	return 0;
+}

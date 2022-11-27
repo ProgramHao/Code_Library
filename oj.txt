@@ -1,0 +1,130 @@
+OR135 单词缩写
+#include <iostream>
+#include<string>
+using namespace std;
+
+int main() {
+    int n;
+    string str;
+    cin>>n;
+    getchar();
+    for(int i=0;i<n;++i)
+    {
+        string str2;
+        getline(cin,str);
+        if(str.size()<10)
+        cout<<str<<endl;
+        else
+        {
+            str2+=*(str.begin());
+            str2+=to_string(str.size()-2);
+            str2+=*(str.rbegin());
+            cout<<str2<<endl;
+        }
+    }
+    return 0;
+}
+
+
+
+面试题 01.03. URL化
+class Solution {
+public:
+    string replaceSpaces(string S, int length) {
+        string str;
+        for(int i=0;i<length;++i)
+        {
+            if(S[i]==' ')
+                str+="%20";
+            else
+            str+=S[i];
+        }
+        return str;
+    }
+};
+
+
+
+面试题 01.06. 字符串压缩
+class Solution {
+public:
+string compressString(string S) {
+    int N = S.length();
+    string res;
+    int i = 0;
+    while (i < N) {
+        int j = i;
+        while (j < N && S[j] == S[i]) {
+            j++;
+        }
+        res += S[i];
+        res += to_string(j - i);
+        i = j;
+    }
+
+    if (res.length() < S.length()) {
+        return res;
+    } else {
+        return S;
+    }
+}
+};
+
+
+
+
+面试题 05.07. 配对交换
+class Solution {
+public:
+    //int -> 32位
+    //奇数位全1 -> 0101.... 表示为 0x55555555
+    //偶数位全1 -> 1010.... 表示为 0xaaaaaaaa
+    //ans = (提取奇数位 << 1) + (提取偶数位 >> 1)
+    int exchangeBits(int num) {
+        return (((num & 0x55555555) << 1) | ((num & 0xaaaaaaaa) >> 1));
+    }
+};
+
+
+
+
+面试题 08.05. 递归乘法
+class Solution {
+public:
+int multiply(int A, int B){
+    if(B==0)
+        return 0;
+    return A+multiply(A,B-1);
+}
+};
+
+
+
+HJ55 挑7
+#include <iostream>
+using namespace std;
+
+int main() {
+    int n,count=0;
+    cin>>n;
+    for(int i=1;i<=n;++i)
+    {
+        int tmp=i;
+        if(tmp%7==0)
+        count++;
+        else
+        {
+            while(tmp)
+            {
+                if(tmp%10==7)
+                {
+                    count++;
+                    break;
+                }
+                tmp/=10;
+            }
+        }
+    }
+    cout<<count<<endl;
+    return 0;
+}

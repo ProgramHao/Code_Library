@@ -1,130 +1,168 @@
-OR135 单词缩写
+面试题 16.05. 阶乘尾数
+class Solution {
+public:
+    int trailingZeroes(int n) {
+        int count=0;
+        while(n>=5)
+        {
+            n/=5;
+            count+=n;
+        }
+        return count;
+    }
+};
+
+
+
+
+HJ7 取近似值
+#include <iostream>
+using namespace std;
+
+int main() {
+    double n;
+    cin>>n;
+    int nn=(int)n;
+    if(n-nn>=0.5)
+    ++nn;
+    cout<<nn;
+    return 0;
+    }
+    
+
+
+OR140 数列
+#include <iostream>
+using namespace std;
+
+// //递归次数太多，容易栈溢出，有示例过不了
+// int knum(int n)
+// {
+//     if(n==2)
+//     return 2;
+//     if(n==1)
+//     return 1;
+
+//     return 2*knum(n-1)+knum(n-2);
+// }
+
+// int main() {
+//     int n;
+//     cin>>n;
+//     getchar();
+//     for(int i=0;i<n;++i)
+//     {
+//         int ret;
+//         cin>>ret;
+//         getchar();
+//         cout<<(knum(ret)%32767)<<endl;
+//     }
+//     return 0;
+// }
+// 64 位输出请用 printf("%lld")
+
+#include<vector>
+int main()
+{
+    vector<int> v;
+    v.push_back(1);
+    v.push_back(2);
+    int n;
+    cin>>n;
+    getchar();
+    for(int i=0;i<n;++i)
+    {
+        int k;
+        cin>>k;
+        getchar();
+        if(v.size()>=k)
+        cout<<v[k-1]<<endl;
+        else
+        {
+            for(int i=v.size();i<k;++i)
+            {
+                int vnum=(2*v[i-1]+v[i-2])%32767;
+                v.push_back(vnum);
+            }
+            cout<<v[v.size()-1]<<endl;
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+HJ40 统计字符
 #include <iostream>
 #include<string>
 using namespace std;
 
 int main() {
-    int n;
     string str;
-    cin>>n;
-    getchar();
-    for(int i=0;i<n;++i)
+    getline(cin,str);
+    int chnum1=0,chnum2=0,chnum3=0,chnum4=0;
+    for(size_t i=0;i<str.size();++i)
     {
-        string str2;
-        getline(cin,str);
-        if(str.size()<10)
-        cout<<str<<endl;
-        else
+        if((str[i]>='a'&&str[i]<='z')||(str[i]>='A'&&str[i]<='Z'))
+        ++chnum1;
+        else if(str[i]==' ')
         {
-            str2+=*(str.begin());
-            str2+=to_string(str.size()-2);
-            str2+=*(str.rbegin());
-            cout<<str2<<endl;
+            ++chnum2;
         }
+        else if(str[i]>='0'&&str[i]<='9')
+        {
+            ++chnum3;
+        }
+        else
+        ++chnum4;
     }
+    cout<<chnum1<<endl<<chnum2<<endl<<chnum3<<'\n'<<chnum4<<endl;
     return 0;
 }
 
 
 
-面试题 01.03. URL化
+1480. 一维数组的动态和
 class Solution {
 public:
-    string replaceSpaces(string S, int length) {
-        string str;
-        for(int i=0;i<length;++i)
+    vector<int> runningSum(vector<int>& nums) {
+        vector<int> v;
+        for(int i=0;i<nums.size();++i)
         {
-            if(S[i]==' ')
-                str+="%20";
-            else
-            str+=S[i];
-        }
-        return str;
-    }
-};
-
-
-
-面试题 01.06. 字符串压缩
-class Solution {
-public:
-string compressString(string S) {
-    int N = S.length();
-    string res;
-    int i = 0;
-    while (i < N) {
-        int j = i;
-        while (j < N && S[j] == S[i]) {
-            j++;
-        }
-        res += S[i];
-        res += to_string(j - i);
-        i = j;
-    }
-
-    if (res.length() < S.length()) {
-        return res;
-    } else {
-        return S;
-    }
-}
-};
-
-
-
-
-面试题 05.07. 配对交换
-class Solution {
-public:
-    //int -> 32位
-    //奇数位全1 -> 0101.... 表示为 0x55555555
-    //偶数位全1 -> 1010.... 表示为 0xaaaaaaaa
-    //ans = (提取奇数位 << 1) + (提取偶数位 >> 1)
-    int exchangeBits(int num) {
-        return (((num & 0x55555555) << 1) | ((num & 0xaaaaaaaa) >> 1));
-    }
-};
-
-
-
-
-面试题 08.05. 递归乘法
-class Solution {
-public:
-int multiply(int A, int B){
-    if(B==0)
-        return 0;
-    return A+multiply(A,B-1);
-}
-};
-
-
-
-HJ55 挑7
-#include <iostream>
-using namespace std;
-
-int main() {
-    int n,count=0;
-    cin>>n;
-    for(int i=1;i<=n;++i)
-    {
-        int tmp=i;
-        if(tmp%7==0)
-        count++;
-        else
-        {
-            while(tmp)
+            int sum=0;
+            for(int j=0;j<=i;++j)
             {
-                if(tmp%10==7)
-                {
-                    count++;
-                    break;
-                }
-                tmp/=10;
+                sum+=nums[j];
+            }
+            v.push_back(sum);
+        }
+        return v;
+    }
+};
+
+
+
+
+
+
+35. 搜索插入位置
+class Solution {
+public:
+    int searchInsert(vector<int>& nums, int target) {
+        int n = nums.size();
+        int left = 0, right = n - 1, ret = n;
+        while (left <= right) {
+            //int mid = ((right - left) >> 1) + left;
+            int mid =(left+right)/2;
+            if (target <= nums[mid]) {
+                ret = mid;
+                right = mid - 1;
+            } else {
+                left = mid + 1;
             }
         }
+        return ret;
     }
-    cout<<count<<endl;
-    return 0;
-}
+};

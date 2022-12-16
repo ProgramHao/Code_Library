@@ -1,0 +1,383 @@
+#pragma once
+
+
+//这里设置一个命名空间，是为了自己更好的查看，
+//因为这个命名空间里面，是用的闭散列的方法来解决哈希冲突，
+//进而模拟实现的哈希表
+namespace CloseHash
+{
+
+	//枚举用于哈希表里相应存储位置的状态
+	enum State
+	{
+		EMPTY, //空
+		EXIST, //存在
+		DELETE //删除
+	};
+
+
+
+	//该类为哈希表里的元素
+	template<class K, class V>
+	struct HashData
+	{
+		//K为键值(关键码) 的类型，V为存放的元素 的类型
+		pair<K, V> _kv;
+		//用于哈希表里每个存储位置的状态，这里给一个缺省值，状态都是空
+		State _state = EMPTY;
+	};
+
+
+
+	//用于哈希表第三个类模板接收仿函数。
+	//这里就是仿函数
+	template<class K>
+	struct HashFunc
+	{
+		//将复杂类型的键值(关键码)key转换成无符号整型
+		size_t operator()(const K& key)
+		{
+			//强制类型转换成无符号整型
+			return (size_t)key;
+		}
+	};
+
+
+	//这里是哈希表第三个模板参数接收仿函数，接收的若不是下面的类的特化，
+	// 自己也不想用默认的，那么就需要在测试用例TestHT2()中，
+	// 就要用HashTable<string, int, HashFuncString>进行哈希表的实例化
+	//struct HashFuncString
+		//{
+		//	size_t operator()(const string& key)
+		//	{
+		//		size_t val = 0;
+		//		for (auto ch : key)
+		//		{
+		//			val += ch;
+		//		}
+		//
+		//		return val;
+		//	}
+		//};
+
+
+	//这里的仿函数就是下面的测试用例TestHT2()，
+	//第三个类模板参数hash不用默认的，就可以自己传想用的。
+	//这里用类的特化，那么在测试用例TestHT2()中，
+	//依旧可以用HashTable<string, int>进行实例化，
+	//那么哈希表的第三个模板参数用的也不是默认的，也是下面类的特化，
+	//因为编译器回去找最匹配的类模板参数！
+	template<>
+	struct HashFunc<string> //类的特化
+	{
+		// BKDR
+		size_t operator()(const string& key) //将字符串转化成可以 模% 的整型
+		{
+			size_t val = 0;
+			for (auto ch : key)
+			{
+				//为了防止下面的测试用例TestHT3()中，该仿函数返回值相同，
+				//这里用BKDR这个大佬写了一个算法，就是每一次的值都乘以131，
+				//这样就能保证测试用例TestHT3()中，不会出现该仿函数返回值相同的问题，
+				//但是这里为什么要乘以131了？？这里应该是数学上的知识，记住就行！
+				val *= 131;
+				val += ch;
+			}
+
+			return val;
+		}
+	};
+
+
+
+	//该类为哈希表
+	//K为键值(关键码) 的类型，V为存放的元素 的类型。
+	//第三个类模板参数hash，就是因为查找、插入成员函数有模，那么就需要将复杂类型的key，
+	//转换成可以使用 模% 的整型，这里的第三个类模板参数是接收 仿函数的，
+	//比如下面的测试用例TestHT2()，实例化该类的时候，第三个类模板参数Hash不用默认的仿函数HashFunc<K>，
+	//就可以传自己想用的仿函数
+	template<class K, class V, class Hash = HashFunc<K>>
+	class HashTable
+	{
+	public:
+		//插入数据
+		bool Insert(const pair<K, V>& kv)
+		{
+			//先通过Find成员函数查找一下插入的数据是否已经存在
+			if (Find(kv.first))
+				return false;//存在就返回fasle，即不用插入
+
+			// 负载因子到了就扩容
+			//这里我们可以自己设置，这里设置的是哈希表的有效数据达到 顺序表vector的空间的70%就扩容
+			if (_tables.size() == 0 || 10 * _size / _tables.size() >= 7) // 扩容
+			{
+				//得到一个新的将顺序表vector扩容的大小newSize
+				size_t newSize = _tables.size() == 0 ? 10 : _tables.size() * 2;
+
+				//构造一个新的哈希表，
+				//将哈希表里的成员变量(vector的对象)进行resize扩容
+				HashTable<K, V, Hash> newHT;
+				newHT._tables.resize(newSize);
+
+				// 扩容后，将旧表的数据映射到新表
+				for (auto e : _tables)
+				{
+					//查看存储位置的状态
+					if (e._state == EXIST)
+					{
+						//状态为存在，就是有数据，将数据插入新表
+						newHT.Insert(e._kv);
+					}
+				}
+
+				//这是用的vector库里的swap
+				_tables.swap(newHT._tables);
+			}//扩容结束
+
+
+			//第三个类模板参数接收的是仿函数，仿函数也是类，所以要用的话，需要先实例化
+			Hash hash;
+			//用类型K的键值(关键码) %(模) 顺序表vector的空间大小，
+			//得到一个在哈希表中 存储数据(类型是V) 的位置下标hashi，
+			//这里就是用键值(关键码)，来通过 模 在顺序表vector的空间里得到一个存储位置下标hashi，
+			//也就是哈希表的下标就是顺序表vector的下标，因为用的空间都是vector的。
+			//这里就算给的负数，因为有第三个类模板参数，也会提升成无符号数，所以是可以插入的。
+			//这里用第三个类模板参数的实例化，将键值(关键码)key进行转换成 可以用 模%。
+			size_t hashi = hash(kv.first) % _tables.size();
+			// 解决哈希冲突的方法一：闭散列 之 线性探测 的方式插入数据
+			while (_tables[hashi]._state == EXIST)
+			{
+				//存储位置下标往前走
+				hashi++;
+				//这里的下标hashi需要模一下，是因为这个下标不能超过整个顺序表的空间，
+				//即不能越界！所以这里只是单纯的不能越界 而进行的操作
+				hashi %= _tables.size();
+			}
+
+			//将插入的数据放入哈希表
+			_tables[hashi]._kv = kv;
+			//将该存储位置状态改为EXIST存在
+			_tables[hashi]._state = EXIST;
+			//哈希表的有效数据就要++一次
+			++_size;
+
+
+
+
+			//Hash hash;
+			//size_t start = hash(kv.first) % _tables.size();
+			//size_t i = 0;
+			//size_t hashi = start;
+			//// 闭散列 之 二次探测 的方式插入数据，
+			// 主要是解决线性探测的缺点提出的方法
+			//while (_tables[hashi]._state == EXIST)
+			//{
+			// //主要就是将距离拉开 ，将存储位置下标加i*i,这样发生哈希冲突的时候，
+			// //就可以将距离拉远，相对线性探测发生哈希冲突的时候，
+			// //数据存放可以更分散一些，这样就可以解决线性探测的缺点的问题
+			//	++i;
+			//	hashi = start + i*i;
+			//	hashi %= _tables.size();
+			//}
+
+			//_tables[hashi]._kv = kv;
+			//_tables[hashi]._state = EXIST;
+			//++_size;
+
+
+
+
+
+			//插入完成后，就返回ture，表示插入成功
+			return true;
+		}
+
+
+		//查找数据，即给一个类型K的键值(关键码)key，返回一个指向 类类型HashData对象 的指针
+		HashData<K, V>* Find(const K& key)
+		{
+			//这里就是哈希表(或顺序表vector)的空间为0，即没有开辟空间
+			if (_tables.size() == 0)
+			{
+				//就不用找了，直接返回空指针
+				return nullptr;
+			}
+
+			//第三个类模板参数接收的是仿函数，仿函数也是类，所以要用的话，需要先实例化
+			Hash hash;
+			//通过模来取哈希表里的存储位置下标。
+			//这里用第三个类模板参数的实例化，将键值(关键码)key进行转换成 可以用 模%。
+			size_t start = hash(key) % _tables.size();
+			size_t hashi = start;//哈希表里的存储位置下标
+			while (_tables[hashi]._state != EMPTY)
+			{
+				//判断该存储位置的状态不为delete删除 以及 是否有相等的键值key。
+				//为什么这里会加判断该存储位置的状态不为delete删除？？
+				//是因为会有极端的情况：就是是一些删除的操作后，这些位置的状态就是delete删除，
+				//那么如果再进行删除操作的时候，就不需要再考虑这些已经删除过的位置，
+				//这样效率就会更高。
+				if (_tables[hashi]._state != DELETE && _tables[hashi]._kv.first == key)
+				{
+					//返回指向 哈希表相应存储位置的元素 的指针
+					return &_tables[hashi];
+				}
+
+				//没有返回，存储位置下标就继续往前走
+				hashi++;
+				//这里的下标hashi需要模一下，是因为这个下标不能超过整个顺序表的空间，
+				//即不能越界！所以这里只是单纯的不能越界 而进行的操作
+				hashi %= _tables.size();
+
+				//这里就是存储位置下标走了整个顺序表vector(或哈希表)空间后，
+				// 回到了开始的下标，那么就不需要再找，
+				//因为已经走了一圈了，那么没找到就是没有
+				if (hashi == start)
+				{
+					//直接跳出循环
+					break;
+				}
+			}
+
+			//没找到就返回空指针
+			return nullptr;
+		}
+
+
+		//删除数据，给一个类型K的键值(关键码)key，然后删除数据
+		bool Erase(const K& key)
+		{
+			//通过查找成员函数，返回的是一个指向哈希表里的元素 的指针，
+			//即返回一个指向 类类型HashData对象 的指针
+			HashData<K, V>* ret = Find(key);
+			if (ret)//返回值不为空
+			{
+				//修改哈希表元素的状态
+				ret->_state = DELETE;
+				//哈希表的有效数据_size要--一下
+				--_size;
+				return true; //然后直接返回true，表示删除成功
+			}
+			else //返回值为空
+			{
+				//那么也就是要删除的元素不存在，直接返回false，表示删除失败
+				return false;
+			}
+		}
+
+
+		//这里是我们自己设计的，实际中没有这个成员函数，
+		//只是为了打印出来方便自己查看测试例子
+		void Print()
+		{
+			for (size_t i = 0; i < _tables.size(); ++i)
+			{
+				//哈希表的元素存在
+				if (_tables[i]._state == EXIST)
+				{
+					//打印出元素在哈希表的存储位置下标，还有存放的类型K的键值(关键码)key，
+					//打印出来只是看一下是否符合预期
+					printf("[%d:%d] ", i, _tables[i]._kv.first);
+				}
+				//哈希表的元素存在
+				else
+				{
+					//只打印哈希表的存储位置下标
+					printf("[%d:*] ", i);
+				}
+			}
+			cout << endl;
+		}
+
+	private:
+		//哈希表的成员变量是顺序表vector的对象，缺少每个存储位置的状态，用下面的
+		//vector<pair<K, V>> _table;
+
+		//因为我们还需要知道哈希表里每个存储位置的状态，所以用自己定义的类HashData，
+		//来作为顺序表里的对象的类类型。
+		//也就是说哈希表用的空间就是顺序表vector的空间
+		vector<HashData<K, V>> _tables;
+		//哈希表里存储多少个有效数据
+		size_t _size = 0;
+	};
+
+
+
+	//验证一下插入、查找成员函数
+	void TestHT1()
+	{
+		//int a[] = { 1, 11, 4, 15, 26, 7, 44, 9 };
+		int a[] = { 1, 11, 4, 15, 26, 7, 44 };
+		HashTable<int, int> ht;
+		for (auto e : a)
+		{
+			ht.Insert(make_pair(e, e));
+		}
+
+		ht.Print();
+
+		ht.Erase(4);
+		cout << ht.Find(44)->_kv.first << endl;
+		cout << ht.Find(4) << endl;
+		ht.Print();
+
+		//负数是可以插入的，因为会用-2模_tables.size(),所以负数会进行提升成无符号数
+		ht.Insert(make_pair(-2, -2));
+		ht.Print();
+
+		cout << ht.Find(-2)->_kv.first << endl;
+	}
+
+
+
+
+	void TestHT2()
+	{
+		string arr[] = { "苹果", "西瓜", "苹果", "西瓜", "苹果", "苹果", "西瓜",
+			"苹果", "香蕉", "苹果", "香蕉" };
+
+		//如果第三个模板参数接收的不是类的特化，也不想用默认的，那么就需要显示传
+		//HashTable<string, int, HashFunc<string>> countHT;
+
+		//将哈希表实例化，如果哈希表第三个模板参数接收的是类的特化，这里就可以用HashTable<string, int>实例化，
+		//这样第三个模板参数用的不是默认的，也是用的自己向用的，因为编译器会去找最匹配的
+		HashTable<string, int> countHT;
+		for (auto& str : arr)
+		{
+			//查找成员函数
+			//这里的str就是一个字符串类型，但是查找成员函数有模，所以这里会用哈希表的第三个类模板参数
+			auto ptr = countHT.Find(str);
+			//不为空，统计次数
+			if (ptr)
+			{
+				ptr->_kv.second++;
+			}
+			//为空，就插入
+			else
+			{
+				countHT.Insert(make_pair(str, 1));
+			}
+		}
+	}
+
+
+
+	void TestHT3()
+	{
+		HashFunc<string> hash;
+		cout << hash("abcd") << endl;
+		cout << hash("bcad") << endl;
+		cout << hash("eat") << endl;
+		cout << hash("ate") << endl;
+		cout << hash("abcd") << endl;
+		cout << hash("aadd") << endl << endl;
+
+		cout << hash("abcd") << endl;
+		cout << hash("bcad") << endl;
+		cout << hash("eat") << endl;
+		cout << hash("ate") << endl;
+		cout << hash("abcd") << endl;
+		cout << hash("aadd") << endl << endl;
+	}
+
+
+}

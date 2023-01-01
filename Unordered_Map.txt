@@ -1,7 +1,5 @@
-<<<<<<<<<<<<<<>>>>>>>>>>>>>>>
-<<<<<<<<<<<HashTable.h>>>>>>>>>>
-<<<<<<<<<<<<<<>>>>>>>>>>>>>>>
-
+<<<<<<<<<<<<<<hashtable.h>>>>>>>>>>>>>>>>>>>
+<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>
 #pragma once
 
 
@@ -379,9 +377,11 @@ namespace Bucket
 
 
 
-<<<<<<<<<<<<<<>>>>>>>>>>>>>>>
-<<<<<<<<<<<Unordered_Set.h>>>>>>>>>>
-<<<<<<<<<<<<<<>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<Unoredered_Map.h>>>>>>>>>>>>>>>>>>>>>>
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 
 #pragma once
 
@@ -391,62 +391,112 @@ namespace Bucket
 namespace jh
 {
 
-	//容器unordered_set，
-	//插入的数据的类型就是K，就是将K作为哈希表的第二个模板参数
-	template<class K, class Hash = HashFunc<K>>
-	class unordered_set
+	template<class K>
+	struct HashFunc
 	{
-		//定义一个内部类SetKeyOfT，作为参数 给哈希表的第4个模板参数KeyOfT
-		struct SetKeyOfT
+		//将复杂类型的键值(关键码)key转换成无符号整型
+		size_t operator()(const K& key)
+		{
+			//强制类型转换成无符号整型
+			return (size_t)key;
+		}
+	};
+
+	template<>
+	struct HashFunc<string> //类的特化，因为键值key可能是字符串string
+	{
+		// BKDR
+		size_t operator()(const string& key) //将字符串转化成可以 模% 的整型
+		{
+			size_t val = 0;
+			for (auto ch : key)
+			{
+				//为了防止下面的测试用例TestHT3()中，该仿函数返回值相同，
+				//这里用BKDR这个大佬写了一个算法，就是每一次的值都乘以131，
+				//这样就能保证测试用例TestHT3()中，不会出现该仿函数返回值相同的问题，
+				//但是这里为什么要乘以131了？？这里应该是数学上的知识，记住就行！
+				val *= 131;
+				val += ch;
+			}
+
+			return val;
+		}
+	};
+
+
+	
+	//容器unordered_map
+	//插入的数据的类型就是pair<K,V>，就是将pair<K,V>作为哈希表的第二个模板参数
+	template<class K, class V, class Hash = HashFunc<K>>
+	class unordered_map
+	{
+		struct MapKeyOfT
 		{
 			//获得插入数据的键值
-			const K& operator()(const K& key)
+			const K& operator()(const pair<K, V>& kv)
 			{
-				return key;
+				return kv.first;
 			}
 		};
 	public:
-		//加typename是告诉编译器Bucket::HashTable<K, K, Hash, SetKeyOfT>::iterator
+		//加typename是告诉编译器Bucket::HashTable<K, pair<K, V>, Hash, MapKeyOfT>::iterator
 		//这是一个类型，不是一个静态变量
-		typedef typename Bucket::HashTable<K, K, Hash, SetKeyOfT>::iterator iterator;
+		typedef typename Bucket::HashTable<K, pair<K, V>, Hash, MapKeyOfT>::iterator iterator;
 
-		//封装哈希表的迭代器begin()，得到容器unordered_set的迭代器begin()
+		//封装哈希表的迭代器begin()，得到容器unordered_map的迭代器begin()
 		iterator begin()
 		{
 			return _ht.begin();
 		}
 
-		//封装哈希表的迭代器end()，得到容器unordered_set的迭代器end()
+		//封装哈希表的迭代器end()，得到容器unordered_map的迭代器end()
 		iterator end()
 		{
 			return _ht.end();
 		}
 
-		pair<iterator, bool> insert(const K& key)
+		pair<iterator, bool> Insert(const pair<K, V>& kv)
 		{
-			return _ht.Insert(key);
+			return _ht.Insert(kv);
 		}
+
+		V& operator[](const K& key)
+		{
+			pair<iterator, bool> ret = _ht.Insert(make_pair(key, V())); //V()是匿名对象
+			return ret.first->second;
+		}
+
 	private:
-		//将K作为哈希表的第二个模板参数
-		Bucket::HashTable<K, K, Hash, SetKeyOfT> _ht;
+		//将pair<K, V>作为哈希表的第二个模板参数
+		Bucket::HashTable<K, pair<K, V>, Hash, MapKeyOfT> _ht;
 	};
 
-	void test_set()
-	{
-		unordered_set<int> s;
-		s.insert(2);
-		s.insert(3);
-		s.insert(1);
-		s.insert(2);
-		s.insert(5);
 
-		unordered_set<int>::iterator it = s.begin();
-		//auto it = s.begin();
-		while (it != s.end())
+	void test_map()
+	{
+		unordered_map<string, string> dict;
+		dict.Insert(make_pair("sort", ""));
+		dict.Insert(make_pair("string",""));
+		dict.Insert(make_pair("left", ""));
+
+		unordered_map<string, string>::iterator it = dict.begin();
+		while (it != dict.end())
 		{
-			cout << *it << " ";
+			cout << it->first << ":" << it->second << endl;
 			++it;
 		}
 		cout << endl;
+
+		unordered_map<string, int> countMap;
+		string arr[] = { "苹果", "西瓜", "苹果", "西瓜", "苹果", "苹果", "西瓜", "苹果", "香蕉", "苹果", "香蕉" };
+		for (auto e : arr)
+		{
+			countMap[e]++;
+		}
+
+		for (auto& kv : countMap)
+		{
+			cout << kv.first << ":" << kv.second << endl;
+		}
 	}
 }
